@@ -1,6 +1,8 @@
 import {
   boqSeeds,
   contentSeeds,
+  estimatorConfigSeed,
+  materialRateSeeds,
   documentSeeds,
   profileSeed,
   projectSeeds,
@@ -10,9 +12,11 @@ import {
   CollectionName,
   CompanyProfile,
   ContentSection,
+  EstimatorConfig,
   BoqItem,
   DailyReport,
   DocumentItem,
+  MaterialRate,
   Project,
 } from "@/lib/types";
 
@@ -24,6 +28,7 @@ type Collections = {
   reports: DailyReport[];
   documents: DocumentItem[];
   contentSections: ContentSection[];
+  materialRates: MaterialRate[];
 };
 
 const memoryStore: Collections = {
@@ -32,13 +37,15 @@ const memoryStore: Collections = {
   reports: structuredClone(reportSeeds),
   documents: structuredClone(documentSeeds),
   contentSections: structuredClone(contentSeeds),
+  materialRates: structuredClone(materialRateSeeds),
 };
 
 let memoryProfile = structuredClone(profileSeed);
+let memoryEstimatorConfig = structuredClone(estimatorConfigSeed);
 
 const getStorage = () => (typeof window !== "undefined" ? window.localStorage : null);
 
-const keyFor = (name: CollectionName | "profile") => `${STORAGE_PREFIX}:${name}`;
+const keyFor = (name: CollectionName | "profile" | "estimatorConfig") => `${STORAGE_PREFIX}:${name}`;
 
 const readCollection = <T>(name: CollectionName, fallback: T[]): T[] => {
   const storage = getStorage();
@@ -90,6 +97,26 @@ const readProfile = (): CompanyProfile => {
   }
 };
 
+const readEstimatorConfig = (): EstimatorConfig => {
+  const storage = getStorage();
+  if (!storage) {
+    return memoryEstimatorConfig;
+  }
+
+  const raw = storage.getItem(keyFor("estimatorConfig"));
+  if (!raw) {
+    storage.setItem(keyFor("estimatorConfig"), JSON.stringify(estimatorConfigSeed));
+    return structuredClone(estimatorConfigSeed);
+  }
+
+  try {
+    return JSON.parse(raw) as EstimatorConfig;
+  } catch {
+    storage.setItem(keyFor("estimatorConfig"), JSON.stringify(estimatorConfigSeed));
+    return structuredClone(estimatorConfigSeed);
+  }
+};
+
 const writeProfile = (profile: CompanyProfile) => {
   const storage = getStorage();
   if (!storage) {
@@ -98,6 +125,16 @@ const writeProfile = (profile: CompanyProfile) => {
   }
 
   storage.setItem(keyFor("profile"), JSON.stringify(profile));
+};
+
+const writeEstimatorConfig = (config: EstimatorConfig) => {
+  const storage = getStorage();
+  if (!storage) {
+    memoryEstimatorConfig = structuredClone(config);
+    return;
+  }
+
+  storage.setItem(keyFor("estimatorConfig"), JSON.stringify(config));
 };
 
 export const dataLayer = {
@@ -113,6 +150,8 @@ export const dataLayer = {
         return readCollection(name, documentSeeds) as T[];
       case "contentSections":
         return readCollection(name, contentSeeds) as T[];
+      case "materialRates":
+        return readCollection(name, materialRateSeeds) as T[];
       default:
         return [];
     }
@@ -148,6 +187,19 @@ export const dataLayer = {
   async setProfile(profile: CompanyProfile): Promise<CompanyProfile> {
     writeProfile(profile);
     return profile;
+  },
+
+  async getEstimatorConfig(): Promise<EstimatorConfig> {
+    return readEstimatorConfig();
+  },
+
+  getEstimatorConfigSync(): EstimatorConfig {
+    return readEstimatorConfig();
+  },
+
+  async setEstimatorConfig(config: EstimatorConfig): Promise<EstimatorConfig> {
+    writeEstimatorConfig(config);
+    return config;
   },
 };
 

@@ -7,16 +7,24 @@ import { dataLayer } from "@/lib/data-layer";
 
 export default function AdminDashboardPage() {
   const { language } = useLanguage();
-  const [counts, setCounts] = useState({ projects: 0, boqItems: 0, reports: 0, documents: 0, contentSections: 0 });
+  const [counts, setCounts] = useState({
+    projects: 0,
+    boqItems: 0,
+    reports: 0,
+    documents: 0,
+    contentSections: 0,
+    materialRates: 0,
+  });
 
   useEffect(() => {
     const load = async () => {
-      const [projects, boqItems, reports, documents, contentSections] = await Promise.all([
+      const [projects, boqItems, reports, documents, contentSections, materialRates] = await Promise.all([
         dataLayer.list("projects"),
         dataLayer.list("boqItems"),
         dataLayer.list("reports"),
         dataLayer.list("documents"),
         dataLayer.list("contentSections"),
+        dataLayer.list("materialRates"),
       ]);
       setCounts({
         projects: projects.length,
@@ -24,6 +32,7 @@ export default function AdminDashboardPage() {
         reports: reports.length,
         documents: documents.length,
         contentSections: contentSections.length,
+        materialRates: materialRates.length,
       });
     };
     void load();
@@ -35,6 +44,7 @@ export default function AdminDashboardPage() {
     { label: t(language, "reports"), value: counts.reports },
     { label: t(language, "documents"), value: counts.documents },
     { label: t(language, "content"), value: counts.contentSections },
+    { label: t(language, "rates"), value: counts.materialRates },
   ];
 
   return (

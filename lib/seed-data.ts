@@ -3,6 +3,8 @@ import {
   CompanyProfile,
   ContentSection,
   DailyReport,
+  EstimatorConfig,
+  MaterialRate,
   DocumentItem,
   Project,
 } from "@/lib/types";
@@ -86,21 +88,74 @@ export const contentSeeds: ContentSection[] = [
   },
 ];
 
-export const profileSeed: CompanyProfile = {
-  companyName: "EngineerNest",
-  tagline: {
-    en: "Durable engineering. Modern execution.",
-    bn: "নির্মাণে স্থায়িত্ব, বাস্তবায়নে আধুনিকতা।",
+export const materialRateSeeds: MaterialRate[] = [
+  {
+    id: "cement",
+    name: { en: "Cement", bn: "সিমেন্ট" },
+    unit: "bag",
+    rate: 560,
   },
-  phone: "+880 1712-345678",
-  email: "info@engineernest.local",
-  whatsapp: "+8801712345678",
+  {
+    id: "rod",
+    name: { en: "Rod", bn: "রড" },
+    unit: "kg",
+    rate: 98,
+  },
+  {
+    id: "sand",
+    name: { en: "Sand", bn: "বালু" },
+    unit: "cft",
+    rate: 52,
+  },
+  {
+    id: "stone",
+    name: { en: "Stone chips", bn: "খোয়া" },
+    unit: "cft",
+    rate: 120,
+  },
+  {
+    id: "brick",
+    name: { en: "Brick", bn: "ইট" },
+    unit: "pcs",
+    rate: 12,
+  },
+  {
+    id: "labor",
+    name: { en: "Labor", bn: "শ্রম" },
+    unit: "sft",
+    rate: 230,
+  },
+];
+
+export const estimatorConfigSeed: EstimatorConfig = {
+  markupPercent: 10,
+  vatPercent: 7.5,
+  slabThicknessInch: 5,
+  steelKgPerSft: 3.2,
+  wallAreaFactor: 1.85,
+  plasterThicknessMm: 12,
+  landPreset: {
+    shotokToSft: 435.6,
+    kathaToSft: 720,
+    bighaToSft: 14400,
+  },
+};
+
+export const profileSeed: CompanyProfile = {
+  companyName: "M/S SKBA ENTERPRISE",
+  tagline: {
+    en: "Engineer Services",
+    bn: "ইঞ্জিনিয়ারিং সেবা",
+  },
+  phone: "01739894079 / 01401788009",
+  email: "fahad.shipu@gmail.com, admin@skbaenterprise.me",
+  whatsapp: "01739894079",
   address: {
-    en: "House 10, Road 7, Dhaka, Bangladesh",
-    bn: "বাড়ি ১০, রোড ৭, ঢাকা, বাংলাদেশ",
+    en: "West Chattar, College Gate, BOF-1703, Gazipur City",
+    bn: "ওয়েস্ট চত্তর, কলেজ গেট, বিওএফ-১৭০৩, গাজীপুর সিটি",
   },
   about: {
-    en: "Professional engineering and construction management partner for residential and commercial projects.",
-    bn: "আবাসিক ও বাণিজ্যিক প্রকল্পের জন্য পেশাদার ইঞ্জিনিয়ারিং ও কনস্ট্রাকশন ম্যানেজমেন্ট পার্টনার।",
+    en: "Government contractor and engineering service provider for design, estimation, and construction management.",
+    bn: "সরকারি ঠিকাদারি, ডিজাইন, এস্টিমেশন ও কনস্ট্রাকশন ম্যানেজমেন্টে সেবা প্রদানকারী প্রতিষ্ঠান।",
   },
 };
