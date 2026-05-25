@@ -5,7 +5,13 @@ export type LocalizedText = {
   bn: string;
 };
 
-export type CollectionName = "projects" | "boqItems" | "reports" | "documents" | "contentSections";
+export type CollectionName =
+  | "projects"
+  | "boqItems"
+  | "reports"
+  | "documents"
+  | "contentSections"
+  | "materialRates";
 
 export interface Project {
   id: string;
@@ -42,6 +48,29 @@ export interface ContentSection {
   headline: LocalizedText;
   body: LocalizedText;
   cta: LocalizedText;
+}
+
+export type MaterialRateKey = "cement" | "rod" | "sand" | "stone" | "brick" | "labor";
+
+export interface MaterialRate {
+  id: MaterialRateKey;
+  name: LocalizedText;
+  unit: string;
+  rate: number;
+}
+
+export interface EstimatorConfig {
+  markupPercent: number;
+  vatPercent: number;
+  slabThicknessInch: number;
+  steelKgPerSft: number;
+  wallAreaFactor: number;
+  plasterThicknessMm: number;
+  landPreset: {
+    shotokToSft: number;
+    kathaToSft: number;
+    bighaToSft: number;
+  };
 }
 
 export interface CompanyProfile {
