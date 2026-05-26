@@ -34,19 +34,32 @@ Open `http://localhost:3000`.
 
 ## Admin login (Google allowlist)
 
-Admin access now uses **Supabase Auth (Google)** and an allowlisted email check.
+Admin access uses **Supabase Auth (Google)** and an allowlisted email check.
 
 - Default allowlist in this repo: `fahad.shipu@gmail.com`
 - Allowlist env: `ADMIN_GOOGLE_ALLOWLIST` (comma-separated)
 
-Login flow:
+### Login flow
 
-1. User clicks Google sign-in on `/admin/login`
-2. Supabase returns an access token
-3. Server verifies token with Supabase and checks allowed email
-4. A secure httpOnly admin session cookie is set
+1. User clicks **Continue with Google** on `/admin/login`.
+2. Browser is redirected to Supabase → Google OAuth consent screen.
+3. After consent Google redirects back to Supabase, which then redirects to `/auth/callback#access_token=…`.
+4. The `/auth/callback` page reads the token from the URL hash and posts it to `/api/admin/login`.
+5. `/api/admin/login` validates the token against Supabase and checks the admin allowlist, then sets a secure `httpOnly` session cookie.
+6. The callback page performs a hard `window.location.replace("/admin/dashboard")` so the browser issues a fresh HTTP request that includes the new cookie — the middleware validates it and grants access.
 
-If Supabase env is missing, admin login is blocked with an explicit setup message.
+If Supabase env vars are missing, admin login is blocked with an explicit setup message.
+
+### Required Supabase configuration
+
+In your **Supabase project dashboard → Authentication → URL Configuration → Redirect URLs** add:
+
+```
+http://localhost:3000/auth/callback
+https://<your-production-domain>/auth/callback
+```
+
+> Without these entries Google will reject the OAuth redirect with a `redirect_uri_mismatch` error.
 
 ## Available routes
 

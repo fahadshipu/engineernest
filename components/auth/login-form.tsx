@@ -1,58 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { LanguageToggle } from "@/components/language-toggle";
 import { useLanguage } from "@/components/language-provider";
 import { t } from "@/lib/i18n";
 
 export const LoginForm = () => {
-  const router = useRouter();
   const { language } = useLanguage();
-  const [error, setError] = useState(() => {
-    if (typeof window === "undefined") {
-      return "";
-    }
-    const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-    const authError = params.get("error_description") ?? params.get("error");
-    return authError ? decodeURIComponent(authError) : "";
-  });
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
   const envReady = Boolean(supabaseUrl && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-    const accessToken = params.get("access_token");
-    if (!accessToken) {
-      return;
-    }
-
-    const handleAccessToken = async () => {
-      setLoading(true);
-      setError("");
-      try {
-        const response = await fetch("/api/admin/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ accessToken }),
-        });
-        if (!response.ok) {
-          const payload = (await response.json().catch(() => ({}))) as { message?: string };
-          throw new Error(payload.message || "Unable to sign in");
-        }
-        window.history.replaceState({}, document.title, "/admin/login");
-        router.push("/admin/dashboard");
-        router.refresh();
-      } catch (issue: unknown) {
-        setError(issue instanceof Error ? issue.message : language === "bn" ? "লগইন ব্যর্থ হয়েছে" : "Login failed");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    void handleAccessToken();
-  }, [language, router]);
 
   const startGoogleLogin = () => {
     if (!envReady || !supabaseUrl) {
@@ -60,7 +18,12 @@ export const LoginForm = () => {
       return;
     }
 
-    const redirectTo = `${window.location.origin}/admin/login`;
+    setLoading(true);
+    // Redirect to the dedicated /auth/callback route so token exchange
+    // happens outside the /admin/* middleware boundary, and a hard
+    // window.location.replace in the callback guarantees the fresh
+    // httpOnly cookie is included in the first /admin/dashboard request.
+    const redirectTo = `${window.location.origin}/auth/callback`;
     const authUrl = new URL(`${supabaseUrl}/auth/v1/authorize`);
     authUrl.searchParams.set("provider", "google");
     authUrl.searchParams.set("redirect_to", redirectTo);
