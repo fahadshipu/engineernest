@@ -32,7 +32,7 @@ import {
   type RccMixRatioKey,
   type TileSizePresetKey,
 } from "@/lib/calculations";
-import { EstimatorConfig, MaterialRate } from "@/lib/types";
+import { CompanyProfile, DocumentItem, EstimatorConfig, MaterialRate } from "@/lib/types";
 
 const fallbackConfig: EstimatorConfig = {
   markupPercent: 10,
@@ -67,6 +67,7 @@ const conversionRows: Array<{ from: ConversionUnit; to: ConversionUnit; label: {
 ];
 
 type TabKey = "overview" | "masonry" | "plaster" | "rcc" | "tiles" | "earthwork";
+type PrintTemplateMode = "pad-a" | "pad-b";
 
 const TABS: Array<{ key: TabKey; label: { en: string; bn: string } }> = [
   { key: "overview", label: { en: "Overview",       bn: "সার্বিক"           } },
@@ -120,6 +121,8 @@ export default function EstimatorPage() {
 
   const [config, setConfig] = useState<EstimatorConfig>(fallbackConfig);
   const [rates, setRates] = useState<MaterialRate[]>([]);
+  const [company, setCompany] = useState<CompanyProfile | null>(null);
+  const [documents, setDocuments] = useState<DocumentItem[]>([]);
 
   // Overview tab state
   const [builtAreaSft, setBuiltAreaSft] = useState(1200);
@@ -182,6 +185,11 @@ export default function EstimatorPage() {
 
   // Active tab
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
+  const [printTemplate, setPrintTemplate] = useState<PrintTemplateMode>("pad-a");
+  const [estimateRefNo, setEstimateRefNo] = useState("EST-001");
+  const [estimateDate, setEstimateDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [estimateClient, setEstimateClient] = useState("");
+  const [estimateProject, setEstimateProject] = useState("");
 
   useEffect(() => {
     void dataLayer.getEstimatorConfig().then((nextConfig) => {
@@ -194,6 +202,8 @@ export default function EstimatorPage() {
       setEarthworkDisposalRate(nextConfig.earthwork.transportDisposalRatePerM3);
     });
     void dataLayer.list<MaterialRate>("materialRates").then(setRates);
+    void dataLayer.getProfile().then(setCompany);
+    void dataLayer.list<DocumentItem>("documents").then(setDocuments);
   }, []);
 
   const rateFor = (id: string) => rates.find((r) => r.id === id)?.rate ?? 0;
@@ -321,6 +331,57 @@ export default function EstimatorPage() {
     [converter, config],
   );
 
+  const padTemplateA = useMemo(
+    () => documents.find((item) => item.category === "pad-template-a"),
+    [documents],
+  );
+  const padTemplateB = useMemo(
+    () => documents.find((item) => item.category === "pad-template-b"),
+    [documents],
+  );
+
+  const printLineItems = useMemo(
+    () => [
+      {
+        name: language === "bn" ? "সিমেন্ট" : "Cement",
+        qty: budget.quantities.cement,
+        unit: "bag",
+        amount: budget.lines.find((line) => line.key === "cement")?.amount ?? 0,
+      },
+      {
+        name: language === "bn" ? "রড" : "Steel",
+        qty: budget.quantities.rod,
+        unit: "kg",
+        amount: budget.lines.find((line) => line.key === "rod")?.amount ?? 0,
+      },
+      {
+        name: language === "bn" ? "বালু" : "Sand",
+        qty: budget.quantities.sand,
+        unit: "cft",
+        amount: budget.lines.find((line) => line.key === "sand")?.amount ?? 0,
+      },
+      {
+        name: language === "bn" ? "খোয়া" : "Stone chips",
+        qty: budget.quantities.stone,
+        unit: "cft",
+        amount: budget.lines.find((line) => line.key === "stone")?.amount ?? 0,
+      },
+      {
+        name: language === "bn" ? "ইট" : "Brick",
+        qty: budget.quantities.brick,
+        unit: "pcs",
+        amount: budget.lines.find((line) => line.key === "brick")?.amount ?? 0,
+      },
+      {
+        name: language === "bn" ? "শ্রম" : "Labor",
+        qty: budget.quantities.labor,
+        unit: "sft",
+        amount: budget.lines.find((line) => line.key === "labor")?.amount ?? 0,
+      },
+    ],
+    [budget, language],
+  );
+
   // ── Shared disclaimer ──────────────────────────────────────────────────────
   const disclaimer = (
     <p className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
@@ -337,6 +398,109 @@ export default function EstimatorPage() {
       </h1>
 
       {disclaimer}
+
+      <section className="mb-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm print:hidden">
+        <h2 className="mb-4 text-xl font-semibold">{language === "bn" ? "এস্টিমেট প্রিন্ট সেটআপ" : "Estimate print setup"}</h2>
+        <div className="grid gap-3 md:grid-cols-2">
+          <label className="text-sm font-medium text-slate-700">
+            {language === "bn" ? "রেফারেন্স নং" : "Ref no"}
+            <input value={estimateRefNo} onChange={(e) => setEstimateRefNo(e.target.value)} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+          </label>
+          <label className="text-sm font-medium text-slate-700">
+            {language === "bn" ? "তারিখ" : "Date"}
+            <input type="date" value={estimateDate} onChange={(e) => setEstimateDate(e.target.value)} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+          </label>
+          <label className="text-sm font-medium text-slate-700">
+            {language === "bn" ? "ক্লায়েন্টের নাম" : "Client name"}
+            <input value={estimateClient} onChange={(e) => setEstimateClient(e.target.value)} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+          </label>
+          <label className="text-sm font-medium text-slate-700">
+            {language === "bn" ? "প্রজেক্টের নাম" : "Project name"}
+            <input value={estimateProject} onChange={(e) => setEstimateProject(e.target.value)} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+          </label>
+          <label className="text-sm font-medium text-slate-700 md:col-span-2">
+            {language === "bn" ? "প্যাড টেমপ্লেট" : "Pad template"}
+            <select value={printTemplate} onChange={(e) => setPrintTemplate(e.target.value as PrintTemplateMode)} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2">
+              <option value="pad-a">{language === "bn" ? "টেমপ্লেট A (ক্লাসিক হেডার)" : "Template A (classic header)"}</option>
+              <option value="pad-b">{language === "bn" ? "টেমপ্লেট B (সাইড-অ্যাকসেন্ট)" : "Template B (side accent)"}</option>
+            </select>
+          </label>
+          <div className="rounded-md border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600 md:col-span-2">
+            {language === "bn"
+              ? "Admin > Documents থেকে Pad template A/B ক্যাটাগরিতে ইমেজ আপলোড করুন। সেগুলো প্রিন্ট হেডারে রেফারেন্স হিসেবে দেখানো হবে।"
+              : "Upload images in Admin > Documents under Pad template A/B categories. Those images are used as print-header references."}
+          </div>
+        </div>
+        <button type="button" onClick={() => window.print()} className="mt-4 rounded-md bg-blue-900 px-4 py-2 font-semibold text-white">
+          {language === "bn" ? "প্রিন্ট প্রিভিউ / প্রিন্ট" : "Print preview / Print"}
+        </button>
+      </section>
+
+      <section
+        className={`estimate-print-root mb-6 rounded-xl border bg-white p-6 shadow-sm ${
+          printTemplate === "pad-a" ? "border-slate-200" : "border-blue-300"
+        }`}
+      >
+        <div className={`mb-4 ${printTemplate === "pad-b" ? "border-l-4 border-blue-700 pl-4" : ""}`}>
+          {(printTemplate === "pad-a" ? padTemplateA : padTemplateB)?.url && (
+            <img
+              src={(printTemplate === "pad-a" ? padTemplateA : padTemplateB)?.url}
+              alt={language === "bn" ? "প্যাড হেডার রেফারেন্স" : "Pad header reference"}
+              className="mb-3 max-h-36 w-full rounded object-contain"
+            />
+          )}
+          <h2 className="text-xl font-bold">{company?.companyName ?? "EngineerNest"}</h2>
+          <p className="text-sm text-slate-600">{company ? pick(language, company.tagline) : ""}</p>
+        </div>
+
+        <div className="mb-4 grid gap-2 text-sm md:grid-cols-2">
+          <p><strong>{language === "bn" ? "রেফ নং:" : "Ref no:"}</strong> {estimateRefNo}</p>
+          <p><strong>{language === "bn" ? "তারিখ:" : "Date:"}</strong> {estimateDate}</p>
+          <p><strong>{language === "bn" ? "ক্লায়েন্ট:" : "Client:"}</strong> {estimateClient || "-"}</p>
+          <p><strong>{language === "bn" ? "প্রজেক্ট:" : "Project:"}</strong> {estimateProject || "-"}</p>
+        </div>
+
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr className="bg-slate-100">
+              <th className="border border-slate-300 px-2 py-2 text-left">{language === "bn" ? "আইটেম" : "Item"}</th>
+              <th className="border border-slate-300 px-2 py-2 text-right">{language === "bn" ? "পরিমাণ" : "Qty"}</th>
+              <th className="border border-slate-300 px-2 py-2 text-right">{language === "bn" ? "রেট" : "Rate"}</th>
+              <th className="border border-slate-300 px-2 py-2 text-right">{language === "bn" ? "পরিমাণ (৳)" : "Amount (৳)"}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {printLineItems.map((line) => (
+              <tr key={line.name}>
+                <td className="border border-slate-300 px-2 py-2">{line.name}</td>
+                <td className="border border-slate-300 px-2 py-2 text-right">{line.qty.toFixed(2)} {line.unit}</td>
+                <td className="border border-slate-300 px-2 py-2 text-right">৳ {(line.qty ? line.amount / line.qty : 0).toFixed(2)}</td>
+                <td className="border border-slate-300 px-2 py-2 text-right">৳ {Math.round(line.amount).toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div className="mt-4 ml-auto w-full max-w-sm space-y-1 text-sm">
+          <p className="flex justify-between"><span>{language === "bn" ? "সাবটোটাল" : "Subtotal"}</span><strong>৳ {Math.round(budget.subtotal).toLocaleString()}</strong></p>
+          <p className="flex justify-between"><span>{language === "bn" ? "প্রফিট" : "Profit"} ({config.markupPercent}%)</span><strong>৳ {Math.round(budget.markup).toLocaleString()}</strong></p>
+          <p className="flex justify-between"><span>{language === "bn" ? "ভ্যাট" : "VAT"} ({config.vatPercent}%)</span><strong>৳ {Math.round(budget.vat).toLocaleString()}</strong></p>
+          <p className="flex justify-between border-t border-slate-300 pt-2 text-base"><span>{language === "bn" ? "গ্র্যান্ড টোটাল" : "Grand total"}</span><strong>৳ {Math.round(budget.total).toLocaleString()}</strong></p>
+        </div>
+
+        <div className="mt-8 grid gap-6 text-sm md:grid-cols-2">
+          <p className="rounded-md bg-amber-50 p-3 text-amber-900">
+            {language === "bn"
+              ? "এই এস্টিমেটটি প্রাথমিক। চূড়ান্ত পরিমাণ, সাইট কন্ডিশন ও কোড কমপ্লায়েন্স অবশ্যই যোগ্য প্রকৌশলী যাচাই করবেন।"
+              : "This estimate is preliminary only. Final quantity, site conditions, and code compliance must be verified by a qualified engineer."}
+          </p>
+          <div className="pt-10 text-right">
+            <div className="inline-block border-t border-slate-400 px-6 pt-1">
+              {language === "bn" ? "স্বাক্ষর / অথরাইজড" : "Signature / Authorized"}
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ── Tab bar ──────────────────────────────────────────────────────── */}
       <div className="mb-6 flex flex-wrap gap-2">

@@ -32,14 +32,21 @@ npm run dev
 
 Open `http://localhost:3000`.
 
-## Admin login (MVP)
+## Admin login (Google allowlist)
 
-Default starter credentials:
+Admin access now uses **Supabase Auth (Google)** and an allowlisted email check.
 
-- Username: `fahadshipu`
-- Password: `change-me-now`
+- Default allowlist in this repo: `fahad.shipu@gmail.com`
+- Allowlist env: `ADMIN_GOOGLE_ALLOWLIST` (comma-separated)
 
-> This is MVP authentication only. Replace with production-grade auth before deployment.
+Login flow:
+
+1. User clicks Google sign-in on `/admin/login`
+2. Supabase returns an access token
+3. Server verifies token with Supabase and checks allowed email
+4. A secure httpOnly admin session cookie is set
+
+If Supabase env is missing, admin login is blocked with an explicit setup message.
 
 ## Available routes
 
@@ -98,14 +105,43 @@ Schema and setup notes:
 - `docs/supabase-schema.sql`
 - `docs/supabase-integration.md`
 
+## Admin file uploads
+
+`/admin/documents` supports:
+
+- file upload (images/PDF/docs/sheets)
+- URL-based document entry
+- metadata (`title`, `type`, `category`)
+- delete action
+- inline image preview when applicable
+
+Categories include project images, drawings, invoices, estimate PDFs, company documents, and pad template A/B references.
+
+Current MVP storage provider is local data-url persistence through an upload abstraction (`lib/file-storage.ts`) so Supabase Storage can be wired later without changing the form contract.
+
+## Pad-based estimate printing
+
+`/estimator` now includes:
+
+- print template selector (Template A and Template B)
+- print metadata fields (ref no, date, client name, project name)
+- A4-friendly print preview and print action
+- estimate table + subtotal/profit/VAT/grand total
+- signature/footer area
+- preliminary estimate disclaimer (Bangla + English)
+
+Pad template reference images are taken from uploaded documents with categories:
+
+- `pad-template-a`
+- `pad-template-b`
+
 ## Environment setup
 
 Copy `.env.example` to `.env.local` and update values as needed.
 
 Important placeholders include:
 
-- `ADMIN_USERNAME`
-- `ADMIN_PASSWORD`
+- `ADMIN_GOOGLE_ALLOWLIST`
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`

@@ -22,3 +22,20 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@media print {
+  body {
+    background: #fff;
+  }
+
+  .estimate-print-root {
+    break-inside: avoid;
+    box-shadow: none !important;
+    border: 1px solid #d1d5db;
+    margin: 0;
+  }
+
+  .print\:hidden {
+    display: none !important;
+  }
+}

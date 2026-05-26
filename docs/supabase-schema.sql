@@ -52,7 +52,12 @@ create table if not exists documents (
   title_en text not null,
   title_bn text not null,
   document_type text not null,
+  category text not null default 'company-document',
   url text not null,
+  file_name text,
+  mime_type text,
+  size_bytes bigint,
+  storage_provider text not null default 'local',
   created_at timestamptz not null default now()
 );
 
