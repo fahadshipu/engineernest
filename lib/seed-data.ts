@@ -63,13 +63,29 @@ export const documentSeeds: DocumentItem[] = [
     id: "d1",
     title: { en: "Structural Drawing Package", bn: "স্ট্রাকচারাল ড্রইং প্যাকেজ" },
     type: "Drawing",
+    category: "drawing",
     url: "https://example.com/structural-drawing.pdf",
   },
   {
     id: "d2",
     title: { en: "Monthly Progress Invoice", bn: "মাসিক প্রগ্রেস ইনভয়েস" },
     type: "Invoice",
+    category: "invoice",
     url: "https://example.com/progress-invoice.pdf",
+  },
+  {
+    id: "d3",
+    title: { en: "Company Pad Header A", bn: "কোম্পানি প্যাড হেডার A" },
+    type: "Pad Template",
+    category: "pad-template-a",
+    url: "https://example.com/pad-template-a.jpg",
+  },
+  {
+    id: "d4",
+    title: { en: "Company Pad Header B", bn: "কোম্পানি প্যাড হেডার B" },
+    type: "Pad Template",
+    category: "pad-template-b",
+    url: "https://example.com/pad-template-b.jpg",
   },
 ];
 

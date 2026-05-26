@@ -40,7 +40,13 @@ export interface DocumentItem {
   id: string;
   title: LocalizedText;
   type: string;
+  category?: string;
   url: string;
+  mimeType?: string;
+  fileName?: string;
+  sizeBytes?: number;
+  storageProvider?: "local" | "supabase";
+  createdAt?: string;
 }
 
 export interface ContentSection {
