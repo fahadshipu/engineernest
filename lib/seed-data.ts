@@ -4,10 +4,17 @@ import {
   ContentSection,
   DailyReport,
   EstimatorConfig,
-  MaterialRate,
   DocumentItem,
+  InventoryItem,
+  MaterialRate,
   Project,
+  WorkLog,
 } from "@/lib/types";
+
+const workLogPhotoA =
+  "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400'%3E%3Crect width='600' height='400' fill='%23dbeafe'/%3E%3Crect x='60' y='180' width='480' height='140' rx='16' fill='%239ca3af'/%3E%3Crect x='110' y='110' width='120' height='80' rx='10' fill='%23f59e0b'/%3E%3Cpath d='M240 250l80-90 70 70 50-45 90 65H240Z' fill='%232563eb'/%3E%3Ctext x='50%25' y='360' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='26' fill='%230f172a'%3ESite Progress Photo%3C/text%3E%3C/svg%3E";
+const workLogPhotoB =
+  "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400'%3E%3Crect width='600' height='400' fill='%23dcfce7'/%3E%3Crect x='70' y='170' width='460' height='150' rx='18' fill='%2364748b'/%3E%3Ccircle cx='170' cy='130' r='42' fill='%23facc15'/%3E%3Cpath d='M240 255l70-75 55 42 75-80 88 113H240Z' fill='%2316a34a'/%3E%3Ctext x='50%25' y='355' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='24' fill='%230f172a'%3EDaily Work Log%3C/text%3E%3C/svg%3E";
 
 export const projectSeeds: Project[] = [
   {
@@ -16,6 +23,40 @@ export const projectSeeds: Project[] = [
     location: { en: "Dhaka", bn: "ঢাকা" },
     status: { en: "In Progress", bn: "চলমান" },
     budget: 18000000,
+    spentCost: 11250000,
+    startDate: "2026-03-01",
+    endDate: "2026-12-20",
+    progressPercent: 62,
+    clientSummary: {
+      en: "Structural frame is progressing floor by floor, with MEP coordination underway.",
+      bn: "স্ট্রাকচারাল ফ্রেম ধাপে ধাপে এগোচ্ছে এবং এমইপি সমন্বয় কাজ চলছে।",
+    },
+    stages: [
+      {
+        id: "p1-s1",
+        name: { en: "Foundation & Substructure", bn: "ফাউন্ডেশন ও সাবস্ট্রাকচার" },
+        startDate: "2026-03-01",
+        endDate: "2026-04-20",
+        status: { en: "Completed", bn: "সম্পন্ন" },
+        progressPercent: 100,
+      },
+      {
+        id: "p1-s2",
+        name: { en: "Superstructure", bn: "সুপারস্ট্রাকচার" },
+        startDate: "2026-04-21",
+        endDate: "2026-08-30",
+        status: { en: "In Progress", bn: "চলমান" },
+        progressPercent: 70,
+      },
+      {
+        id: "p1-s3",
+        name: { en: "Finishing & Handover", bn: "ফিনিশিং ও হ্যান্ডওভার" },
+        startDate: "2026-09-01",
+        endDate: "2026-12-20",
+        status: { en: "Pending", bn: "অপেক্ষমাণ" },
+        progressPercent: 15,
+      },
+    ],
   },
   {
     id: "p2",
@@ -23,6 +64,40 @@ export const projectSeeds: Project[] = [
     location: { en: "Chattogram", bn: "চট্টগ্রাম" },
     status: { en: "Completed", bn: "সম্পন্ন" },
     budget: 9500000,
+    spentCost: 9300000,
+    startDate: "2025-11-10",
+    endDate: "2026-04-18",
+    progressPercent: 100,
+    clientSummary: {
+      en: "Retrofit package completed with production-safe phasing and close-out documentation delivered.",
+      bn: "প্রোডাকশন-সেফ ফেজিংসহ রেট্রোফিট প্যাকেজ সম্পন্ন হয়েছে এবং ক্লোজ-আউট ডকুমেন্ট হস্তান্তর করা হয়েছে।",
+    },
+    stages: [
+      {
+        id: "p2-s1",
+        name: { en: "Assessment & Design", bn: "অ্যাসেসমেন্ট ও ডিজাইন" },
+        startDate: "2025-11-10",
+        endDate: "2025-12-15",
+        status: { en: "Completed", bn: "সম্পন্ন" },
+        progressPercent: 100,
+      },
+      {
+        id: "p2-s2",
+        name: { en: "Retrofit Execution", bn: "রেট্রোফিট এক্সিকিউশন" },
+        startDate: "2025-12-16",
+        endDate: "2026-03-28",
+        status: { en: "Completed", bn: "সম্পন্ন" },
+        progressPercent: 100,
+      },
+      {
+        id: "p2-s3",
+        name: { en: "Testing & Handover", bn: "টেস্টিং ও হ্যান্ডওভার" },
+        startDate: "2026-03-29",
+        endDate: "2026-04-18",
+        status: { en: "Completed", bn: "সম্পন্ন" },
+        progressPercent: 100,
+      },
+    ],
   },
 ];
 
@@ -55,6 +130,65 @@ export const reportSeeds: DailyReport[] = [
     date: "2026-05-21",
     summary: { en: "Electrical conduit layout validated.", bn: "ইলেকট্রিক্যাল কন্ডুইট লে-আউট যাচাই করা হয়েছে।" },
     laborCount: 21,
+  },
+];
+
+export const workLogSeeds: WorkLog[] = [
+  {
+    id: "wl1",
+    date: "2026-05-24",
+    projectId: "p1",
+    summary: {
+      en: "Level 6 slab reinforcement tied and column shutter alignment checked.",
+      bn: "৬ষ্ঠ তলার স্ল্যাব রড বাঁধাই সম্পন্ন এবং কলাম শাটারের অ্যালাইনমেন্ট পরীক্ষা করা হয়েছে।",
+    },
+    progressNotes: {
+      en: "Concrete pour for the slab remains on track for tomorrow morning.",
+      bn: "আগামীকাল সকালেই স্ল্যাব কংক্রিট ঢালাইয়ের প্রস্তুতি সম্পন্ন রয়েছে।",
+    },
+    laborCount: 38,
+    weather: { en: "Cloudy with light wind", bn: "মেঘলা, হালকা বাতাস" },
+    photos: [
+      {
+        url: workLogPhotoA,
+        fileName: "gulshan-slab-progress.svg",
+        mimeType: "image/svg+xml",
+        sizeBytes: 1820,
+        storageProvider: "local",
+      },
+    ],
+    remarks: {
+      en: "Rebar cover blocks restocked before shift close.",
+      bn: "শিফট শেষ হওয়ার আগে রিবার কভার ব্লক পুনরায় সংগ্রহ করা হয়েছে।",
+    },
+  },
+  {
+    id: "wl2",
+    date: "2026-05-23",
+    projectId: "p2",
+    summary: {
+      en: "Final punch list review completed with client representative.",
+      bn: "ক্লায়েন্ট প্রতিনিধির উপস্থিতিতে ফাইনাল পাঞ্চ লিস্ট রিভিউ সম্পন্ন হয়েছে।",
+    },
+    progressNotes: {
+      en: "Only signage relocation remained before handover closure.",
+      bn: "হ্যান্ডওভার ক্লোজারের আগে শুধু সাইনেজ রিলোকেশন বাকি ছিল।",
+    },
+    laborCount: 12,
+    weather: { en: "Warm and dry", bn: "উষ্ণ ও শুষ্ক" },
+    photos: [
+      {
+        url: workLogPhotoB,
+        fileName: "factory-closeout.svg",
+        mimeType: "image/svg+xml",
+        sizeBytes: 1760,
+        storageProvider: "local",
+      },
+    ],
+    remarks: {
+      en: "Close-out documents uploaded to the project archive.",
+      bn: "ক্লোজ-আউট ডকুমেন্ট প্রজেক্ট আর্কাইভে আপলোড করা হয়েছে।",
+    },
   },
 ];
 
@@ -140,6 +274,29 @@ export const materialRateSeeds: MaterialRate[] = [
     name: { en: "Labor", bn: "শ্রম" },
     unit: "sft",
     rate: 230,
+  },
+];
+
+export const inventorySeeds: InventoryItem[] = [
+  {
+    id: "inv1",
+    name: { en: "Cement", bn: "সিমেন্ট" },
+    unit: "bag",
+    quantityReceived: 1200,
+    quantityConsumed: 860,
+    rate: 560,
+    supplier: { en: "Dhaka Traders", bn: "ঢাকা ট্রেডার্স" },
+    remarks: { en: "Reserved for slab and stair casting", bn: "স্ল্যাব ও সিঁড়ির কাস্টিংয়ের জন্য সংরক্ষিত" },
+  },
+  {
+    id: "inv2",
+    name: { en: "MS Rod 60 Grade", bn: "এমএস রড ৬০ গ্রেড" },
+    unit: "kg",
+    quantityReceived: 24000,
+    quantityConsumed: 18500,
+    rate: 98,
+    supplier: { en: "Chattogram Steel House", bn: "চট্টগ্রাম স্টিল হাউস" },
+    remarks: { en: "Cutting schedule aligned with level 6 shuttering", bn: "লেভেল ৬ শাটারিংয়ের সাথে কাটিং সূচি সমন্বয় করা হয়েছে" },
   },
 ];
 

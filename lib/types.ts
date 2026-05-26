@@ -11,7 +11,18 @@ export type CollectionName =
   | "reports"
   | "documents"
   | "contentSections"
-  | "materialRates";
+  | "materialRates"
+  | "workLogs"
+  | "inventoryItems";
+
+export interface ProjectStage {
+  id: string;
+  name: LocalizedText;
+  startDate: string;
+  endDate: string;
+  status: LocalizedText;
+  progressPercent: number;
+}
 
 export interface Project {
   id: string;
@@ -19,6 +30,12 @@ export interface Project {
   location: LocalizedText;
   status: LocalizedText;
   budget: number;
+  spentCost: number;
+  startDate: string;
+  endDate: string;
+  progressPercent: number;
+  clientSummary: LocalizedText;
+  stages: ProjectStage[];
 }
 
 export interface BoqItem {
@@ -34,6 +51,26 @@ export interface DailyReport {
   date: string;
   summary: LocalizedText;
   laborCount: number;
+}
+
+export interface WorkLogPhoto {
+  url: string;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  storageProvider: "local" | "supabase";
+}
+
+export interface WorkLog {
+  id: string;
+  date: string;
+  projectId: string;
+  summary: LocalizedText;
+  progressNotes: LocalizedText;
+  laborCount: number;
+  weather: LocalizedText;
+  photos: WorkLogPhoto[];
+  remarks: LocalizedText;
 }
 
 export interface DocumentItem {
@@ -63,6 +100,17 @@ export interface MaterialRate {
   name: LocalizedText;
   unit: string;
   rate: number;
+}
+
+export interface InventoryItem {
+  id: string;
+  name: LocalizedText;
+  unit: string;
+  quantityReceived: number;
+  quantityConsumed: number;
+  rate?: number;
+  supplier?: LocalizedText;
+  remarks?: LocalizedText;
 }
 
 export interface EstimatorConfig {
@@ -96,3 +144,5 @@ export interface CompanyProfile {
   address: LocalizedText;
   about: LocalizedText;
 }
+
+export type DashboardRole = "engineer" | "client";

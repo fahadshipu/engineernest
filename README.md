@@ -7,6 +7,10 @@ EngineerNest is a **Next.js (App Router)** MVP foundation for a civil engineerin
 - Public responsive marketing site (Bangla + English)
 - Admin login and protected admin area
 - Admin CRUD for projects, BOQ, reports, documents, content, and company profile
+- Daily work log management with project-linked photos, weather, labor, progress notes, and remarks
+- Project execution tracking with timeline / Gantt-style stage cards and overall progress percentage
+- Inventory / stock management with received, consumed, and remaining quantity visibility
+- Separate engineer/admin and client dashboard experiences
 - Admin-managed **material rates** and **estimation configuration**
 - Trade-wise + earthwork estimator with editable assumptions
 - BNBC-aware site compliance checklist module for admin tracking
@@ -86,6 +90,8 @@ https://<your-production-domain>/auth/callback
 - `/admin/login`
 - `/admin/dashboard`
 - `/admin/projects`
+- `/admin/work-logs`
+- `/admin/inventory`
 - `/admin/boq`
 - `/admin/reports`
 - `/admin/documents`
@@ -93,6 +99,10 @@ https://<your-production-domain>/auth/callback
 - `/admin/content`
 - `/admin/rates`
 - `/admin/site-compliance`
+
+### Client
+
+- `/client/dashboard`
 
 ## Calculation engine foundation
 
@@ -115,6 +125,13 @@ Current persistence uses browser localStorage with in-memory fallback via a cent
 - Shared app-domain types: `lib/types.ts`
 - Seed/default values: `lib/seed-data.ts`
 - Data access abstraction: `lib/data-layer.ts`
+
+The data layer now includes DB-ready collections for:
+
+- project stages / progress percentages
+- daily work logs
+- inventory stock items
+- route-driven dashboard role views
 
 ### Future Supabase path
 
@@ -140,6 +157,48 @@ Schema and setup notes:
 Categories include project images, drawings, invoices, estimate PDFs, company documents, and pad template A/B references.
 
 Current MVP storage provider is local data-url persistence through an upload abstraction (`lib/file-storage.ts`) so Supabase Storage can be wired later without changing the form contract.
+
+The same upload abstraction is reused for **daily work log photos**, so site images can stay in the current MVP flow while remaining ready for future Supabase Storage migration.
+
+## Project operations features
+
+### Daily work logs
+
+`/admin/work-logs` provides a practical engineer/admin UI for:
+
+- selecting the project and date
+- recording bilingual work summaries and progress notes
+- tracking labor / worker count and weather condition
+- attaching daily site photos
+- storing optional remarks
+- reviewing logs by project and day with a list/detail layout
+
+### Timeline / project progress
+
+`/admin/projects` and `/admin/dashboard` now support:
+
+- project start / end dates
+- overall progress percentage
+- stage-wise timeline cards with start/end/status/progress
+- client-facing progress visibility on `/client/dashboard`
+
+This is a lightweight MVP timeline / Gantt-style planner built with existing UI primitives rather than a heavy chart dependency.
+
+### Inventory / stock logic
+
+`/admin/inventory` supports:
+
+- quantity received (stock-in)
+- quantity consumed (stock-out)
+- automatic remaining stock calculation (`received - consumed`)
+- optional unit rate, supplier, and remarks
+
+### Engineer/admin vs client dashboards
+
+- `/admin/dashboard` is the editable internal operations view for engineers/admins
+- `/client/dashboard` is the restricted read-only client view focused on project status, timeline, photos, and cost visibility
+
+> MVP role model note: role separation is currently expressed through route/view abstractions and UI capabilities. Full multi-user role enforcement is future-ready but not yet backed by a dedicated auth/authorization store.
 
 ## Pad-based estimate printing
 
