@@ -14,6 +14,14 @@ const emptyConfig: EstimatorConfig = {
   steelKgPerSft: 3,
   wallAreaFactor: 1.8,
   plasterThicknessMm: 12,
+  earthwork: {
+    excavationRatePerM3: 320,
+    backfillRatePerM3: 180,
+    transportDisposalRatePerM3: 240,
+    defaultSwellFactor: 1.2,
+    defaultCompactionFactor: 0.9,
+    defaultSideSlopePercent: 8,
+  },
   landPreset: {
     shotokToSft: 435.6,
     kathaToSft: 720,
@@ -140,6 +148,105 @@ export default function AdminRatesPage() {
             step="1"
             value={config.plasterThicknessMm}
             onChange={(event) => setConfig({ ...config, plasterThicknessMm: Number(event.target.value) })}
+            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
+          />
+        </label>
+
+        <h3 className="md:col-span-2 mt-3 text-base font-semibold">{language === "bn" ? "আর্থওয়ার্ক অনুমান (প্রাথমিক)" : "Earthwork assumptions (preliminary)"}</h3>
+        <label className="text-sm font-medium text-slate-700">
+          {language === "bn" ? "খনন রেট (৳/m³)" : "Excavation rate (৳/m³)"}
+          <input
+            type="number"
+            min={0}
+            step="0.1"
+            value={config.earthwork.excavationRatePerM3}
+            onChange={(event) =>
+              setConfig({
+                ...config,
+                earthwork: { ...config.earthwork, excavationRatePerM3: Number(event.target.value) },
+              })
+            }
+            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
+          />
+        </label>
+        <label className="text-sm font-medium text-slate-700">
+          {language === "bn" ? "ব্যাকফিল রেট (৳/m³)" : "Backfill rate (৳/m³)"}
+          <input
+            type="number"
+            min={0}
+            step="0.1"
+            value={config.earthwork.backfillRatePerM3}
+            onChange={(event) =>
+              setConfig({
+                ...config,
+                earthwork: { ...config.earthwork, backfillRatePerM3: Number(event.target.value) },
+              })
+            }
+            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
+          />
+        </label>
+        <label className="text-sm font-medium text-slate-700">
+          {language === "bn" ? "ডিসপোজাল/ট্রান্সপোর্ট রেট (৳/m³)" : "Disposal/transport rate (৳/m³)"}
+          <input
+            type="number"
+            min={0}
+            step="0.1"
+            value={config.earthwork.transportDisposalRatePerM3}
+            onChange={(event) =>
+              setConfig({
+                ...config,
+                earthwork: { ...config.earthwork, transportDisposalRatePerM3: Number(event.target.value) },
+              })
+            }
+            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
+          />
+        </label>
+        <label className="text-sm font-medium text-slate-700">
+          {language === "bn" ? "ডিফল্ট swell factor" : "Default swell factor"}
+          <input
+            type="number"
+            min={1}
+            step="0.01"
+            value={config.earthwork.defaultSwellFactor}
+            onChange={(event) =>
+              setConfig({
+                ...config,
+                earthwork: { ...config.earthwork, defaultSwellFactor: Number(event.target.value) },
+              })
+            }
+            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
+          />
+        </label>
+        <label className="text-sm font-medium text-slate-700">
+          {language === "bn" ? "ডিফল্ট compaction factor" : "Default compaction factor"}
+          <input
+            type="number"
+            min={0.5}
+            max={1}
+            step="0.01"
+            value={config.earthwork.defaultCompactionFactor}
+            onChange={(event) =>
+              setConfig({
+                ...config,
+                earthwork: { ...config.earthwork, defaultCompactionFactor: Number(event.target.value) },
+              })
+            }
+            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
+          />
+        </label>
+        <label className="text-sm font-medium text-slate-700">
+          {language === "bn" ? "ডিফল্ট side slope allowance (%)" : "Default side slope allowance (%)"}
+          <input
+            type="number"
+            min={0}
+            step="0.1"
+            value={config.earthwork.defaultSideSlopePercent}
+            onChange={(event) =>
+              setConfig({
+                ...config,
+                earthwork: { ...config.earthwork, defaultSideSlopePercent: Number(event.target.value) },
+              })
+            }
             className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
           />
         </label>

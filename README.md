@@ -8,10 +8,14 @@ EngineerNest is a **Next.js (App Router)** MVP foundation for a civil engineerin
 - Admin login and protected admin area
 - Admin CRUD for projects, BOQ, reports, documents, content, and company profile
 - Admin-managed **material rates** and **estimation configuration**
+- Trade-wise + earthwork estimator with editable assumptions
+- BNBC-aware site compliance checklist module for admin tracking
 - Unit conversion tools and preliminary BNBC-inspired estimator
 - Database-ready data abstraction with local persistence fallback
 
 > ⚠️ Estimator disclaimer: all calculations in this MVP are **preliminary estimates only**. Final design, quantities, and costing must be reviewed by a qualified engineer.
+>
+> ⚠️ Site compliance disclaimer: the site module is **BNBC-aware checklist guidance**, not a certified legal/code compliance engine.
 
 ## Tech stack
 
@@ -59,6 +63,7 @@ Default starter credentials:
 - `/admin/profile`
 - `/admin/content`
 - `/admin/rates`
+- `/admin/site-compliance`
 
 ## Calculation engine foundation
 
@@ -70,6 +75,7 @@ Calculation modules are organized in `lib/calculations/`:
 - `plaster`
 - `steel`
 - `budget`
+- `earthwork`
 
 Estimator and converter UIs consume these modules.
 

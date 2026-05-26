@@ -110,7 +110,19 @@ const readEstimatorConfig = (): EstimatorConfig => {
   }
 
   try {
-    return JSON.parse(raw) as EstimatorConfig;
+    const parsed = JSON.parse(raw) as Partial<EstimatorConfig>;
+    return {
+      ...estimatorConfigSeed,
+      ...parsed,
+      earthwork: {
+        ...estimatorConfigSeed.earthwork,
+        ...(parsed.earthwork ?? {}),
+      },
+      landPreset: {
+        ...estimatorConfigSeed.landPreset,
+        ...(parsed.landPreset ?? {}),
+      },
+    };
   } catch {
     storage.setItem(keyFor("estimatorConfig"), JSON.stringify(estimatorConfigSeed));
     return structuredClone(estimatorConfigSeed);

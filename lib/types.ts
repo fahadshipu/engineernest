@@ -66,6 +66,14 @@ export interface EstimatorConfig {
   steelKgPerSft: number;
   wallAreaFactor: number;
   plasterThicknessMm: number;
+  earthwork: {
+    excavationRatePerM3: number;
+    backfillRatePerM3: number;
+    transportDisposalRatePerM3: number;
+    defaultSwellFactor: number;
+    defaultCompactionFactor: number;
+    defaultSideSlopePercent: number;
+  };
   landPreset: {
     shotokToSft: number;
     kathaToSft: number;
