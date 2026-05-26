@@ -4,11 +4,14 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LanguageToggle } from "@/components/language-toggle";
 import { useLanguage } from "@/components/language-provider";
-import { t } from "@/lib/i18n";
+import { pick, t } from "@/lib/i18n";
+import { dashboardRoles } from "@/lib/dashboard-roles";
 
 const adminLinks = [
   { href: "/admin/dashboard", key: "dashboard" as const },
   { href: "/admin/projects", key: "projects" as const },
+  { href: "/admin/work-logs", key: "workLogs" as const },
+  { href: "/admin/inventory", key: "inventory" as const },
   { href: "/admin/boq", key: "boq" as const },
   { href: "/admin/reports", key: "reports" as const },
   { href: "/admin/documents", key: "documents" as const },
@@ -16,12 +19,14 @@ const adminLinks = [
   { href: "/admin/profile", key: "profile" as const },
   { href: "/admin/content", key: "content" as const },
   { href: "/admin/rates", key: "rates" as const },
+  { href: "/estimator", key: "estimator" as const },
 ];
 
 export const AdminShell = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
   const router = useRouter();
   const { language } = useLanguage();
+  const role = dashboardRoles.engineer;
 
   const handleLogout = async () => {
     await fetch("/api/admin/logout", { method: "POST" });
@@ -33,8 +38,9 @@ export const AdminShell = ({ children }: { children: React.ReactNode }) => {
     <div className="min-h-screen bg-slate-100">
       <div className="mx-auto grid max-w-6xl gap-4 px-4 py-4 md:grid-cols-[220px_1fr]">
         <aside className="rounded-lg bg-white p-4 shadow-sm">
-          <h1 className="mb-4 text-lg font-bold text-blue-900">{t(language, "admin")}</h1>
-          <nav className="space-y-1">
+          <h1 className="text-lg font-bold text-blue-900">{t(language, "engineerDashboard")}</h1>
+          <p className="mt-2 rounded-lg bg-blue-50 p-3 text-sm text-blue-900">{pick(language, role.description)}</p>
+          <nav className="mt-4 space-y-1">
             {adminLinks.map((link) => (
               <Link
                 key={link.href}

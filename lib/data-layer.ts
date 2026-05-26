@@ -2,11 +2,13 @@ import {
   boqSeeds,
   contentSeeds,
   estimatorConfigSeed,
+  inventorySeeds,
   materialRateSeeds,
   documentSeeds,
   profileSeed,
   projectSeeds,
   reportSeeds,
+  workLogSeeds,
 } from "@/lib/seed-data";
 import {
   CollectionName,
@@ -16,8 +18,10 @@ import {
   BoqItem,
   DailyReport,
   DocumentItem,
+  InventoryItem,
   MaterialRate,
   Project,
+  WorkLog,
 } from "@/lib/types";
 
 const STORAGE_PREFIX = "engineernest";
@@ -29,6 +33,8 @@ type Collections = {
   documents: DocumentItem[];
   contentSections: ContentSection[];
   materialRates: MaterialRate[];
+  workLogs: WorkLog[];
+  inventoryItems: InventoryItem[];
 };
 
 const memoryStore: Collections = {
@@ -38,6 +44,8 @@ const memoryStore: Collections = {
   documents: structuredClone(documentSeeds),
   contentSections: structuredClone(contentSeeds),
   materialRates: structuredClone(materialRateSeeds),
+  workLogs: structuredClone(workLogSeeds),
+  inventoryItems: structuredClone(inventorySeeds),
 };
 
 let memoryProfile = structuredClone(profileSeed);
@@ -164,6 +172,10 @@ export const dataLayer = {
         return readCollection(name, contentSeeds) as T[];
       case "materialRates":
         return readCollection(name, materialRateSeeds) as T[];
+      case "workLogs":
+        return readCollection(name, workLogSeeds) as T[];
+      case "inventoryItems":
+        return readCollection(name, inventorySeeds) as T[];
       default:
         return [];
     }

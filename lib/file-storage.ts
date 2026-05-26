@@ -1,5 +1,6 @@
 export type UploadCategory =
   | "project-image"
+  | "work-log-photo"
   | "drawing"
   | "invoice"
   | "estimate-pdf"
