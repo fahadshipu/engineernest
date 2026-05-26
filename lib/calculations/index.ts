@@ -4,3 +4,4 @@ export * from "@/lib/calculations/masonry";
 export * from "@/lib/calculations/plaster";
 export * from "@/lib/calculations/steel";
 export * from "@/lib/calculations/budget";
+export * from "@/lib/calculations/tiles";
