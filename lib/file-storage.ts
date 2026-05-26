@@ -24,6 +24,7 @@ const toDataUrl = (file: File) =>
   });
 
 export const uploadAdminFile = async (file: File, _category: UploadCategory): Promise<UploadedFileResult> => {
+  void _category;
   const dataUrl = await toDataUrl(file);
   return {
     url: dataUrl,

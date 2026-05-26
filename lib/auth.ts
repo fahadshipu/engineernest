@@ -40,7 +40,7 @@ export const validateGoogleAdminToken = async (accessToken?: string | null) => {
     return { ok: false as const, status: 500, message: "Supabase environment is not configured" };
   }
 
-  const authorizationHeader = `******;
+  const authorizationHeader = "Bearer ".concat(accessToken);
 
   const response = await fetch(`${supabase.url}/auth/v1/user`, {
     method: "GET",

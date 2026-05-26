@@ -443,6 +443,7 @@ export default function EstimatorPage() {
       >
         <div className={`mb-4 ${printTemplate === "pad-b" ? "border-l-4 border-blue-700 pl-4" : ""}`}>
           {(printTemplate === "pad-a" ? padTemplateA : padTemplateB)?.url && (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={(printTemplate === "pad-a" ? padTemplateA : padTemplateB)?.url}
               alt={language === "bn" ? "প্যাড হেডার রেফারেন্স" : "Pad header reference"}

@@ -9,37 +9,34 @@ import { t } from "@/lib/i18n";
 export const LoginForm = () => {
   const router = useRouter();
   const { language } = useLanguage();
-  const [error, setError] = useState("");
+  const [error, setError] = useState(() => {
+    if (typeof window === "undefined") {
+      return "";
+    }
+    const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const authError = params.get("error_description") ?? params.get("error");
+    return authError ? decodeURIComponent(authError) : "";
+  });
   const [loading, setLoading] = useState(false);
-  const [envReady, setEnvReady] = useState(true);
-  const [supabaseUrl, setSupabaseUrl] = useState("");
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  const envReady = Boolean(supabaseUrl && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
   useEffect(() => {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
-    const ready = Boolean(url && anonKey);
-    setSupabaseUrl(url);
-    setEnvReady(ready);
-
     const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
     const accessToken = params.get("access_token");
-    const authError = params.get("error_description") ?? params.get("error");
-    if (authError) {
-      setError(decodeURIComponent(authError));
-      return;
-    }
     if (!accessToken) {
       return;
     }
 
-    setLoading(true);
-    setError("");
-    void fetch("/api/admin/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ accessToken }),
-    })
-      .then(async (response) => {
+    const handleAccessToken = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const response = await fetch("/api/admin/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accessToken }),
+        });
         if (!response.ok) {
           const payload = (await response.json().catch(() => ({}))) as { message?: string };
           throw new Error(payload.message || "Unable to sign in");
@@ -47,11 +44,14 @@ export const LoginForm = () => {
         window.history.replaceState({}, document.title, "/admin/login");
         router.push("/admin/dashboard");
         router.refresh();
-      })
-      .catch((issue: unknown) => {
+      } catch (issue: unknown) {
         setError(issue instanceof Error ? issue.message : language === "bn" ? "লগইন ব্যর্থ হয়েছে" : "Login failed");
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void handleAccessToken();
   }, [language, router]);
 
   const startGoogleLogin = () => {

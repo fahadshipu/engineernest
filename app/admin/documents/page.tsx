@@ -119,6 +119,7 @@ export default function AdminDocumentsPage() {
               {document.category ? ` • ${document.category}` : ""}
             </p>
             {document.url.startsWith("data:image") && (
+              // eslint-disable-next-line @next/next/no-img-element
               <img src={document.url} alt={pick(language, document.title)} className="mt-2 max-h-40 rounded border border-slate-200 object-contain" />
             )}
             <a href={document.url} target="_blank" rel="noreferrer" className="text-sm text-blue-900 underline">
