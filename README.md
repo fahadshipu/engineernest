@@ -42,13 +42,22 @@ Admin access uses **Supabase Auth (Google)** and an allowlisted email check.
 ### Login flow
 
 1. User clicks **Continue with Google** on `/admin/login`.
-2. Browser is redirected to Supabase → Google OAuth consent screen.
-3. After consent Google redirects back to Supabase, which then redirects to `/auth/callback#access_token=…`.
-4. The `/auth/callback` page reads the token from the URL hash and posts it to `/api/admin/login`.
-5. `/api/admin/login` validates the token against Supabase and checks the admin allowlist, then sets a secure `httpOnly` session cookie.
-6. The callback page performs a hard `window.location.replace("/admin/dashboard")` so the browser issues a fresh HTTP request that includes the new cookie — the middleware validates it and grants access.
+2. The login form generates a PKCE code verifier + challenge (Web Crypto API), stores the verifier in a short-lived cookie (`engineernest_pkce_verifier`, 5 min), and redirects the browser to Supabase's OAuth authorize endpoint with `code_challenge` and `code_challenge_method=s256`.
+3. Supabase redirects the user to the Google OAuth consent screen.
+4. After consent, Google redirects back to Supabase, which then redirects to `/auth/callback?code=AUTHORIZATION_CODE` (code is in the **query string**, not the hash).
+5. The server-side `/auth/callback` Route Handler:
+   a. Reads the authorization code from the query string.
+   b. Reads the PKCE code verifier from the `engineernest_pkce_verifier` cookie.
+   c. Exchanges both with Supabase's token endpoint (`POST /auth/v1/token?grant_type=pkce`).
+   d. Validates that the returned user email is on the admin allowlist.
+   e. Sets a secure `httpOnly` session cookie (`engineernest_admin_token`) and redirects to `/admin/dashboard`.
+6. If anything fails (wrong email, expired code, denied consent), the user is redirected back to `/admin/login` with a clear error message.
 
 If Supabase env vars are missing, admin login is blocked with an explicit setup message.
+
+> **Why PKCE?**  
+> The previous implementation used `response_type=token` (implicit flow), which returns the access token in the URL hash and relies on client-side JavaScript to read and forward it.  This is brittle — newer Supabase projects default to PKCE, and the hash-reading / cookie-setting race caused repeated login-loop failures.  
+> PKCE is the current OAuth 2.0 best practice: the authorization code travels in the query string, and the exchange happens entirely server-side.
 
 ### Required Supabase configuration
 
@@ -59,7 +68,7 @@ http://localhost:3000/auth/callback
 https://<your-production-domain>/auth/callback
 ```
 
-> Without these entries Google will reject the OAuth redirect with a `redirect_uri_mismatch` error.
+> Without these entries Supabase will reject the OAuth redirect with a `redirect_uri_mismatch` error.
 
 ## Available routes
 

@@ -1,4 +1,5 @@
 export const AUTH_COOKIE = "engineernest_admin_token";
+export const PKCE_VERIFIER_COOKIE = "engineernest_pkce_verifier";
 
 const DEFAULT_ADMIN_ALLOWLIST = "fahad.shipu@gmail.com";
 
@@ -61,4 +62,60 @@ export const validateGoogleAdminToken = async (accessToken?: string | null) => {
   }
 
   return { ok: true as const, email: user.email ?? "" };
+};
+
+/**
+ * Exchange a PKCE authorization code for an access token.
+ * Called server-side in the /auth/callback route handler after Google OAuth redirect.
+ */
+export const exchangePkceCode = async (code: string, codeVerifier: string) => {
+  const supabase = getSupabaseConfig();
+  if (!supabase) {
+    return { ok: false as const, status: 500, message: "Supabase environment is not configured" };
+  }
+
+  const response = await fetch(`${supabase.url}/auth/v1/token?grant_type=pkce`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: supabase.anonKey,
+    },
+    body: JSON.stringify({ auth_code: code, code_verifier: codeVerifier }),
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const body = (await response.json().catch(() => ({}))) as { error_description?: string; message?: string };
+    return {
+      ok: false as const,
+      status: 401,
+      message: body.error_description ?? body.message ?? "Authorization code exchange failed",
+    };
+  }
+
+  const data = (await response.json()) as {
+    access_token?: string;
+    user?: { email?: string };
+    error?: string;
+    error_description?: string;
+  };
+
+  if (data.error) {
+    return { ok: false as const, status: 401, message: data.error_description ?? data.error };
+  }
+
+  if (!data.access_token) {
+    return { ok: false as const, status: 401, message: "No access token returned from Supabase" };
+  }
+
+  const email = data.user?.email;
+  if (!isAllowedAdminEmail(email)) {
+    return {
+      ok: false as const,
+      status: 403,
+      message: "Google account is not allowlisted for admin access",
+    };
+  }
+
+  return { ok: true as const, accessToken: data.access_token, email: email ?? "" };
 };
