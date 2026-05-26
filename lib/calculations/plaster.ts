@@ -17,6 +17,14 @@ export const estimatePlasterMaterials = (
     steelKgPerSft: 0,
     wallAreaFactor,
     plasterThicknessMm,
+    earthwork: {
+      excavationRatePerM3: 0,
+      backfillRatePerM3: 0,
+      transportDisposalRatePerM3: 0,
+      defaultSwellFactor: 1,
+      defaultCompactionFactor: 1,
+      defaultSideSlopePercent: 0,
+    },
     landPreset: { shotokToSft: 435.6, kathaToSft: 720, bighaToSft: 14400 },
   });
 
@@ -36,6 +44,14 @@ export const estimatePlasterMaterials = (
       steelKgPerSft: 0,
       wallAreaFactor,
       plasterThicknessMm,
+      earthwork: {
+        excavationRatePerM3: 0,
+        backfillRatePerM3: 0,
+        transportDisposalRatePerM3: 0,
+        defaultSwellFactor: 1,
+        defaultCompactionFactor: 1,
+        defaultSideSlopePercent: 0,
+      },
       landPreset: { shotokToSft: 435.6, kathaToSft: 720, bighaToSft: 14400 },
     }),
   };

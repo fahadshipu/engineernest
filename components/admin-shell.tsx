@@ -12,6 +12,7 @@ const adminLinks = [
   { href: "/admin/boq", key: "boq" as const },
   { href: "/admin/reports", key: "reports" as const },
   { href: "/admin/documents", key: "documents" as const },
+  { href: "/admin/site-compliance", key: "siteCompliance" as const },
   { href: "/admin/profile", key: "profile" as const },
   { href: "/admin/content", key: "content" as const },
   { href: "/admin/rates", key: "rates" as const },

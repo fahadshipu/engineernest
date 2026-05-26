@@ -10,6 +10,14 @@ export const estimateConcreteVolumeM3 = (builtAreaSft: number, floors: number, s
     steelKgPerSft: 0,
     wallAreaFactor: 0,
     plasterThicknessMm: 0,
+    earthwork: {
+      excavationRatePerM3: 0,
+      backfillRatePerM3: 0,
+      transportDisposalRatePerM3: 0,
+      defaultSwellFactor: 1,
+      defaultCompactionFactor: 1,
+      defaultSideSlopePercent: 0,
+    },
     landPreset: { shotokToSft: 435.6, kathaToSft: 720, bighaToSft: 14400 },
   });
   const slabThicknessM = slabThicknessInch * 0.0254;
@@ -34,6 +42,14 @@ export const estimateConcreteMaterials = (volumeM3: number) => {
       steelKgPerSft: 0,
       wallAreaFactor: 0,
       plasterThicknessMm: 0,
+      earthwork: {
+        excavationRatePerM3: 0,
+        backfillRatePerM3: 0,
+        transportDisposalRatePerM3: 0,
+        defaultSwellFactor: 1,
+        defaultCompactionFactor: 1,
+        defaultSideSlopePercent: 0,
+      },
       landPreset: { shotokToSft: 435.6, kathaToSft: 720, bighaToSft: 14400 },
     }),
     stoneCft: convertUnit(stoneM3, "m3", "cft", {
@@ -43,6 +59,14 @@ export const estimateConcreteMaterials = (volumeM3: number) => {
       steelKgPerSft: 0,
       wallAreaFactor: 0,
       plasterThicknessMm: 0,
+      earthwork: {
+        excavationRatePerM3: 0,
+        backfillRatePerM3: 0,
+        transportDisposalRatePerM3: 0,
+        defaultSwellFactor: 1,
+        defaultCompactionFactor: 1,
+        defaultSideSlopePercent: 0,
+      },
       landPreset: { shotokToSft: 435.6, kathaToSft: 720, bighaToSft: 14400 },
     }),
   };

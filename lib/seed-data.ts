@@ -134,6 +134,14 @@ export const estimatorConfigSeed: EstimatorConfig = {
   steelKgPerSft: 3.2,
   wallAreaFactor: 1.85,
   plasterThicknessMm: 12,
+  earthwork: {
+    excavationRatePerM3: 320,
+    backfillRatePerM3: 180,
+    transportDisposalRatePerM3: 240,
+    defaultSwellFactor: 1.2,
+    defaultCompactionFactor: 0.9,
+    defaultSideSlopePercent: 8,
+  },
   landPreset: {
     shotokToSft: 435.6,
     kathaToSft: 720,

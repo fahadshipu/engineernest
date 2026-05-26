@@ -11,6 +11,7 @@ import {
   estimateBudget,
   estimateConcreteMaterials,
   estimateConcreteVolumeM3,
+  estimateEarthwork,
   estimateMasonryMaterials,
   estimatePlasterMaterials,
   estimatePlasterByArea,
@@ -22,6 +23,10 @@ import {
   RCC_MIX_PRESETS,
   TILE_SIZE_PRESETS,
   type ConversionUnit,
+  type EarthworkInputMode,
+  type EarthworkLaborMode,
+  type EarthworkSection,
+  type EarthworkUnitSystem,
   type WallThickness,
   type PlasterPresetKey,
   type RccMixRatioKey,
@@ -36,6 +41,14 @@ const fallbackConfig: EstimatorConfig = {
   steelKgPerSft: 3.2,
   wallAreaFactor: 1.85,
   plasterThicknessMm: 12,
+  earthwork: {
+    excavationRatePerM3: 320,
+    backfillRatePerM3: 180,
+    transportDisposalRatePerM3: 240,
+    defaultSwellFactor: 1.2,
+    defaultCompactionFactor: 0.9,
+    defaultSideSlopePercent: 8,
+  },
   landPreset: {
     shotokToSft: 435.6,
     kathaToSft: 720,
@@ -53,7 +66,7 @@ const conversionRows: Array<{ from: ConversionUnit; to: ConversionUnit; label: {
   { from: "bigha", to: "sft", label: { en: "bigha ↔ sft", bn: "বিঘা ↔ বর্গফুট" } },
 ];
 
-type TabKey = "overview" | "masonry" | "plaster" | "rcc" | "tiles";
+type TabKey = "overview" | "masonry" | "plaster" | "rcc" | "tiles" | "earthwork";
 
 const TABS: Array<{ key: TabKey; label: { en: string; bn: string } }> = [
   { key: "overview", label: { en: "Overview",       bn: "সার্বিক"           } },
@@ -61,14 +74,25 @@ const TABS: Array<{ key: TabKey; label: { en: string; bn: string } }> = [
   { key: "plaster",  label: { en: "Plaster",        bn: "প্লাস্টার"         } },
   { key: "rcc",      label: { en: "RCC Work",       bn: "আরসিসি কাজ"       } },
   { key: "tiles",    label: { en: "Tiles Work",     bn: "টাইলস কাজ"        } },
+  { key: "earthwork", label: { en: "Earthwork",      bn: "মাটি কাটার কাজ"    } },
+];
+
+const EARTHWORK_SECTIONS: Array<{ key: EarthworkSection; label: { en: string; bn: string } }> = [
+  { key: "foundation", label: { en: "Foundation excavation", bn: "ফাউন্ডেশন খনন" } },
+  { key: "trench", label: { en: "Trench / drain cutting", bn: "ট্রেঞ্চ / ড্রেন কাটিং" } },
+  { key: "pit", label: { en: "Pit excavation", bn: "পিট খনন" } },
+  { key: "leveling", label: { en: "Site leveling", bn: "সাইট লেভেলিং" } },
+  { key: "backfilling", label: { en: "Backfilling", bn: "ব্যাকফিলিং" } },
+];
+
+const EARTHWORK_SOIL_TYPES: Array<{ key: string; label: { en: string; bn: string }; swellFactor: number }> = [
+  { key: "dense-clay", label: { en: "Dense clay", bn: "ঘন কাদা মাটি" }, swellFactor: 1.2 },
+  { key: "sandy", label: { en: "Sandy soil", bn: "বালুমাটি" }, swellFactor: 1.12 },
+  { key: "mixed", label: { en: "Mixed soil", bn: "মিশ্র মাটি" }, swellFactor: 1.18 },
+  { key: "loose-fill", label: { en: "Loose fill", bn: "ঢিলা ভরাট মাটি" }, swellFactor: 1.25 },
 ];
 
 // ─── Small helpers ─────────────────────────────────────────────────────────────
-
-function SectionLabel({ en, bn, language }: { en: string; bn: string; language: string }) {
-  return <span>{language === "bn" ? bn : en}</span>;
-}
-
 function ResultRow({ label, value, unit }: { label: string; value: number; unit: string }) {
   return (
     <div className="flex items-center justify-between border-b border-slate-100 py-1 text-sm last:border-0">
@@ -133,11 +157,42 @@ export default function EstimatorPage() {
   const [tilesWastagePercent, setTilesWastagePercent] = useState(10);
   const [tilesRatePerSft, setTilesRatePerSft] = useState(80);
 
+  // Earthwork tab state
+  const [earthworkSection, setEarthworkSection] = useState<EarthworkSection>("foundation");
+  const [earthworkMode, setEarthworkMode] = useState<EarthworkInputMode>("lwd");
+  const [earthworkUnitSystem, setEarthworkUnitSystem] = useState<EarthworkUnitSystem>("metric");
+  const [earthworkSoilType, setEarthworkSoilType] = useState(EARTHWORK_SOIL_TYPES[0].key);
+  const [earthworkLength, setEarthworkLength] = useState(12);
+  const [earthworkWidth, setEarthworkWidth] = useState(2);
+  const [earthworkDepth, setEarthworkDepth] = useState(1.5);
+  const [earthworkArea, setEarthworkArea] = useState(40);
+  const [earthworkRepeatedUnits, setEarthworkRepeatedUnits] = useState(6);
+  const [earthworkVolumePerUnit, setEarthworkVolumePerUnit] = useState(1.2);
+  const [earthworkManualVolume, setEarthworkManualVolume] = useState(35);
+  const [earthworkSwellFactor, setEarthworkSwellFactor] = useState(fallbackConfig.earthwork.defaultSwellFactor);
+  const [earthworkCompactionFactor, setEarthworkCompactionFactor] = useState(fallbackConfig.earthwork.defaultCompactionFactor);
+  const [earthworkSideSlopePercent, setEarthworkSideSlopePercent] = useState(fallbackConfig.earthwork.defaultSideSlopePercent);
+  const [earthworkBackfillPercent, setEarthworkBackfillPercent] = useState(35);
+  const [earthworkLaborMode, setEarthworkLaborMode] = useState<EarthworkLaborMode>("mixed");
+  const [earthworkExcavationRate, setEarthworkExcavationRate] = useState(fallbackConfig.earthwork.excavationRatePerM3);
+  const [earthworkBackfillRate, setEarthworkBackfillRate] = useState(fallbackConfig.earthwork.backfillRatePerM3);
+  const [earthworkDisposalRate, setEarthworkDisposalRate] = useState(fallbackConfig.earthwork.transportDisposalRatePerM3);
+  const [earthworkDisposalDistanceKm, setEarthworkDisposalDistanceKm] = useState(8);
+  const [earthworkTruckCapacityM3, setEarthworkTruckCapacityM3] = useState(6);
+
   // Active tab
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
 
   useEffect(() => {
-    void dataLayer.getEstimatorConfig().then(setConfig);
+    void dataLayer.getEstimatorConfig().then((nextConfig) => {
+      setConfig(nextConfig);
+      setEarthworkSwellFactor(nextConfig.earthwork.defaultSwellFactor);
+      setEarthworkCompactionFactor(nextConfig.earthwork.defaultCompactionFactor);
+      setEarthworkSideSlopePercent(nextConfig.earthwork.defaultSideSlopePercent);
+      setEarthworkExcavationRate(nextConfig.earthwork.excavationRatePerM3);
+      setEarthworkBackfillRate(nextConfig.earthwork.backfillRatePerM3);
+      setEarthworkDisposalRate(nextConfig.earthwork.transportDisposalRatePerM3);
+    });
     void dataLayer.list<MaterialRate>("materialRates").then(setRates);
   }, []);
 
@@ -210,6 +265,56 @@ export default function EstimatorPage() {
     [tilesAreaSft, tilesWidthMm, tilesHeightMm, tilesWastagePercent],
   );
   const tilesCost = tiles.requiredAreaSft * tilesRatePerSft;
+
+  // ── Earthwork calculations ─────────────────────────────────────────────────
+  const earthwork = useMemo(
+    () =>
+      estimateEarthwork({
+        mode: earthworkMode,
+        unitSystem: earthworkUnitSystem,
+        length: earthworkLength,
+        width: earthworkWidth,
+        depth: earthworkDepth,
+        area: earthworkArea,
+        repeatedUnits: earthworkRepeatedUnits,
+        volumePerUnit: earthworkVolumePerUnit,
+        manualTotalVolume: earthworkManualVolume,
+        sideSlopeAllowancePercent: earthworkSideSlopePercent,
+        swellFactor: earthworkSwellFactor,
+        compactionFactor: earthworkCompactionFactor,
+        backfillPercent: earthworkBackfillPercent,
+        laborMode: earthworkLaborMode,
+        excavationRatePerM3: earthworkExcavationRate,
+        backfillRatePerM3: earthworkBackfillRate,
+        transportDisposalRatePerM3: earthworkDisposalRate,
+        disposalDistanceKm: earthworkDisposalDistanceKm,
+        truckCapacityM3: earthworkTruckCapacityM3,
+      }),
+    [
+      earthworkMode,
+      earthworkUnitSystem,
+      earthworkLength,
+      earthworkWidth,
+      earthworkDepth,
+      earthworkArea,
+      earthworkRepeatedUnits,
+      earthworkVolumePerUnit,
+      earthworkManualVolume,
+      earthworkSideSlopePercent,
+      earthworkSwellFactor,
+      earthworkCompactionFactor,
+      earthworkBackfillPercent,
+      earthworkLaborMode,
+      earthworkExcavationRate,
+      earthworkBackfillRate,
+      earthworkDisposalRate,
+      earthworkDisposalDistanceKm,
+      earthworkTruckCapacityM3,
+    ],
+  );
+
+  const volumeToUi = (volumeM3: number) => (earthworkUnitSystem === "metric" ? volumeM3 : volumeM3 * 35.3147);
+  const volumeUnit = earthworkUnitSystem === "metric" ? "m³" : "cft";
 
   const conversionValue = useMemo(
     () => convertUnit(converter.value, converter.from, converter.to, config),
@@ -779,6 +884,221 @@ export default function EstimatorPage() {
         </section>
       )}
 
+      {/* ══════════════════════════════════════════════════════════════════
+          TAB: Earthwork / মাটি কাটার কাজ
+      ══════════════════════════════════════════════════════════════════ */}
+      {activeTab === "earthwork" && (
+        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-1 text-xl font-semibold">
+            {language === "bn" ? "আর্থওয়ার্ক / মাটি কাটার কাজ" : "Earthwork / Excavation"}
+          </h2>
+          <p className="mb-5 text-sm text-slate-500">
+            {language === "bn"
+              ? "BNBC-aware সাইট গাইডলাইন ধরে প্রাথমিক earthwork quantity ও cost সহায়তা। চূড়ান্ত পরিমাপ ও method statement প্রকৌশলী দ্বারা নিশ্চিত করুন।"
+              : "BNBC-aware site guidance based preliminary earthwork quantity and cost support. Final measurements and method statements must be verified by an engineer."}
+          </p>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-4">
+              <label className="block text-sm font-medium text-slate-700">
+                {language === "bn" ? "সাব-সেকশন" : "Subsection"}
+                <select
+                  value={earthworkSection}
+                  onChange={(e) => setEarthworkSection(e.target.value as EarthworkSection)}
+                  className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
+                >
+                  {EARTHWORK_SECTIONS.map((section) => (
+                    <option key={section.key} value={section.key}>
+                      {pick(language, section.label)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <label className="block text-sm font-medium text-slate-700">
+                  {language === "bn" ? "ইউনিট সিস্টেম" : "Unit system"}
+                  <select
+                    value={earthworkUnitSystem}
+                    onChange={(e) => setEarthworkUnitSystem(e.target.value as EarthworkUnitSystem)}
+                    className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
+                  >
+                    <option value="metric">{language === "bn" ? "মেট্রিক" : "Metric"}</option>
+                    <option value="imperial">{language === "bn" ? "ইম্পেরিয়াল" : "Imperial"}</option>
+                  </select>
+                </label>
+                <label className="block text-sm font-medium text-slate-700">
+                  {language === "bn" ? "ইনপুট মোড" : "Input mode"}
+                  <select
+                    value={earthworkMode}
+                    onChange={(e) => setEarthworkMode(e.target.value as EarthworkInputMode)}
+                    className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
+                  >
+                    <option value="lwd">{language === "bn" ? "দৈর্ঘ্য × প্রস্থ × গভীরতা" : "Length × Width × Depth"}</option>
+                    <option value="areaDepth">{language === "bn" ? "এরিয়া × গভীরতা" : "Area × Depth"}</option>
+                    <option value="repeated">{language === "bn" ? "একাধিক ইউনিট" : "Repeated / multiple units"}</option>
+                    <option value="manual">{language === "bn" ? "ম্যানুয়াল মোট ভলিউম" : "Manual total volume"}</option>
+                  </select>
+                </label>
+              </div>
+
+              {earthworkMode === "lwd" && (
+                <div className="grid gap-3 md:grid-cols-3">
+                  <label className="text-sm font-medium text-slate-700">
+                    {language === "bn" ? "দৈর্ঘ্য" : "Length"}
+                    <input type="number" min={0} value={earthworkLength} onChange={(e) => setEarthworkLength(Math.max(0, Number(e.target.value)))} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+                  </label>
+                  <label className="text-sm font-medium text-slate-700">
+                    {language === "bn" ? "প্রস্থ" : "Width"}
+                    <input type="number" min={0} value={earthworkWidth} onChange={(e) => setEarthworkWidth(Math.max(0, Number(e.target.value)))} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+                  </label>
+                  <label className="text-sm font-medium text-slate-700">
+                    {language === "bn" ? "গভীরতা" : "Depth"}
+                    <input type="number" min={0} value={earthworkDepth} onChange={(e) => setEarthworkDepth(Math.max(0, Number(e.target.value)))} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+                  </label>
+                </div>
+              )}
+              {earthworkMode === "areaDepth" && (
+                <div className="grid gap-3 md:grid-cols-2">
+                  <label className="text-sm font-medium text-slate-700">
+                    {language === "bn" ? "এরিয়া" : "Area"}
+                    <input type="number" min={0} value={earthworkArea} onChange={(e) => setEarthworkArea(Math.max(0, Number(e.target.value)))} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+                  </label>
+                  <label className="text-sm font-medium text-slate-700">
+                    {language === "bn" ? "গভীরতা" : "Depth"}
+                    <input type="number" min={0} value={earthworkDepth} onChange={(e) => setEarthworkDepth(Math.max(0, Number(e.target.value)))} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+                  </label>
+                </div>
+              )}
+              {earthworkMode === "repeated" && (
+                <div className="grid gap-3 md:grid-cols-2">
+                  <label className="text-sm font-medium text-slate-700">
+                    {language === "bn" ? "ইউনিট সংখ্যা" : "Number of units"}
+                    <input type="number" min={0} value={earthworkRepeatedUnits} onChange={(e) => setEarthworkRepeatedUnits(Math.max(0, Number(e.target.value)))} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+                  </label>
+                  <label className="text-sm font-medium text-slate-700">
+                    {language === "bn" ? "প্রতি ইউনিট ভলিউম" : "Volume per unit"}
+                    <input type="number" min={0} value={earthworkVolumePerUnit} onChange={(e) => setEarthworkVolumePerUnit(Math.max(0, Number(e.target.value)))} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+                  </label>
+                </div>
+              )}
+              {earthworkMode === "manual" && (
+                <label className="block text-sm font-medium text-slate-700">
+                  {language === "bn" ? "মোট ভলিউম (ম্যানুয়াল)" : "Manual total volume"}
+                  <input type="number" min={0} value={earthworkManualVolume} onChange={(e) => setEarthworkManualVolume(Math.max(0, Number(e.target.value)))} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+                </label>
+              )}
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <label className="block text-sm font-medium text-slate-700">
+                  {language === "bn" ? "মাটির ধরন" : "Soil type"}
+                  <select
+                    value={earthworkSoilType}
+                    onChange={(e) => {
+                      const nextSoilType = e.target.value;
+                      setEarthworkSoilType(nextSoilType);
+                      const soil = EARTHWORK_SOIL_TYPES.find((item) => item.key === nextSoilType);
+                      if (soil) {
+                        setEarthworkSwellFactor(soil.swellFactor);
+                      }
+                    }}
+                    className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
+                  >
+                    {EARTHWORK_SOIL_TYPES.map((soil) => (
+                      <option key={soil.key} value={soil.key}>{pick(language, soil.label)}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block text-sm font-medium text-slate-700">
+                  {language === "bn" ? "লেবার মোড" : "Labor mode"}
+                  <select
+                    value={earthworkLaborMode}
+                    onChange={(e) => setEarthworkLaborMode(e.target.value as EarthworkLaborMode)}
+                    className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
+                  >
+                    <option value="manual">{language === "bn" ? "ম্যানুয়াল" : "Manual"}</option>
+                    <option value="machine">{language === "bn" ? "মেশিন" : "Machine"}</option>
+                    <option value="mixed">{language === "bn" ? "মিক্সড" : "Mixed"}</option>
+                  </select>
+                </label>
+                <label className="block text-sm font-medium text-slate-700">
+                  {language === "bn" ? "Swell / loose factor" : "Swell / loose factor"}
+                  <input type="number" min={1} step={0.01} value={earthworkSwellFactor} onChange={(e) => setEarthworkSwellFactor(Math.max(1, Number(e.target.value)))} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+                </label>
+                <label className="block text-sm font-medium text-slate-700">
+                  {language === "bn" ? "Compaction factor" : "Compaction factor"}
+                  <input type="number" min={0.5} max={1} step={0.01} value={earthworkCompactionFactor} onChange={(e) => setEarthworkCompactionFactor(Math.min(1, Math.max(0.5, Number(e.target.value))))} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+                </label>
+                <label className="block text-sm font-medium text-slate-700">
+                  {language === "bn" ? "Side slope allowance (%)" : "Side slope allowance (%)"}
+                  <input type="number" min={0} step={0.1} value={earthworkSideSlopePercent} onChange={(e) => setEarthworkSideSlopePercent(Math.max(0, Number(e.target.value)))} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+                </label>
+                <label className="block text-sm font-medium text-slate-700">
+                  {language === "bn" ? "Backfill (%)" : "Backfill (%)"}
+                  <input type="number" min={0} max={100} step={0.1} value={earthworkBackfillPercent} onChange={(e) => setEarthworkBackfillPercent(Math.min(100, Math.max(0, Number(e.target.value))))} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+                </label>
+              </div>
+
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+                {language === "bn"
+                  ? "রেট/ফ্যাক্টরগুলো admin Rates & Config থেকে সেট করা যায়। এখানে প্রয়োজনে কাজভিত্তিক মান এডিট করতে পারবেন।"
+                  : "Rates/factors can be set in admin Rates & Config. You can still edit them here per-job as needed."}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="rounded-lg bg-slate-50 p-4">
+                <h3 className="mb-3 text-sm font-semibold text-slate-700">
+                  {language === "bn" ? "ভলিউম সারাংশ (প্রাথমিক অনুমান)" : "Volume summary (preliminary estimate)"}
+                </h3>
+                <ResultRow label={language === "bn" ? "গ্রস এক্সকাভেশন ভলিউম" : "Gross excavation volume"} value={volumeToUi(earthwork.grossExcavationVolumeM3)} unit={volumeUnit} />
+                <ResultRow label={language === "bn" ? "সাইড স্লোপসহ ভলিউম" : "Adjusted excavation volume"} value={volumeToUi(earthwork.adjustedExcavationVolumeM3)} unit={volumeUnit} />
+                <ResultRow label={language === "bn" ? "লুজ মাটি ভলিউম" : "Loose soil volume"} value={volumeToUi(earthwork.looseSoilVolumeM3)} unit={volumeUnit} />
+                <ResultRow label={language === "bn" ? "ব্যাকফিল ভলিউম" : "Backfill volume"} value={volumeToUi(earthwork.backfillVolumeM3)} unit={volumeUnit} />
+                <ResultRow label={language === "bn" ? "ডিসপোজাল পরিমাণ" : "Disposal quantity"} value={volumeToUi(earthwork.disposalQuantityM3)} unit={volumeUnit} />
+                <ResultRow label={language === "bn" ? "আনুমানিক ট্রিপ" : "Estimated trips"} value={earthwork.estimatedTrips} unit={language === "bn" ? "ট্রিপ" : "trips"} />
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <label className="text-sm font-medium text-slate-700">
+                  {language === "bn" ? "খনন রেট (৳/m³)" : "Excavation rate (৳/m³)"}
+                  <input type="number" min={0} step={0.1} value={earthworkExcavationRate} onChange={(e) => setEarthworkExcavationRate(Math.max(0, Number(e.target.value)))} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+                </label>
+                <label className="text-sm font-medium text-slate-700">
+                  {language === "bn" ? "ব্যাকফিল রেট (৳/m³)" : "Backfill rate (৳/m³)"}
+                  <input type="number" min={0} step={0.1} value={earthworkBackfillRate} onChange={(e) => setEarthworkBackfillRate(Math.max(0, Number(e.target.value)))} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+                </label>
+                <label className="text-sm font-medium text-slate-700">
+                  {language === "bn" ? "ডিসপোজাল/ট্রান্সপোর্ট রেট (৳/m³)" : "Disposal/transport rate (৳/m³)"}
+                  <input type="number" min={0} step={0.1} value={earthworkDisposalRate} onChange={(e) => setEarthworkDisposalRate(Math.max(0, Number(e.target.value)))} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+                </label>
+                <label className="text-sm font-medium text-slate-700">
+                  {language === "bn" ? "ডিসপোজাল দূরত্ব (km)" : "Disposal distance (km)"}
+                  <input type="number" min={0} step={0.1} value={earthworkDisposalDistanceKm} onChange={(e) => setEarthworkDisposalDistanceKm(Math.max(0, Number(e.target.value)))} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+                </label>
+              </div>
+              <label className="block text-sm font-medium text-slate-700">
+                {language === "bn" ? "ট্রাক ক্যাপাসিটি (m³)" : "Truck capacity (m³)"}
+                <input type="number" min={0} step={0.1} value={earthworkTruckCapacityM3} onChange={(e) => setEarthworkTruckCapacityM3(Math.max(0, Number(e.target.value)))} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+              </label>
+
+              <div className="rounded-lg bg-blue-900 p-4 text-sm text-white">
+                <h3 className="mb-2 font-semibold">
+                  {language === "bn" ? "আনুমানিক খরচ সারাংশ" : "Approximate costing summary"}
+                </h3>
+                <CostRow label={language === "bn" ? "খনন" : "Excavation"} amount={earthwork.costs.excavationCost} />
+                <CostRow label={language === "bn" ? "ব্যাকফিলিং" : "Backfilling"} amount={earthwork.costs.backfillCost} />
+                <CostRow label={language === "bn" ? "ডিসপোজাল/ট্রান্সপোর্ট" : "Disposal/transport"} amount={earthwork.costs.disposalCost} />
+                <CostRow label={language === "bn" ? "লেবার মোড অ্যাডজাস্টমেন্ট" : "Labor mode adjustment"} amount={earthwork.costs.laborAdjustedCost} />
+                <p className="mt-3 border-t border-blue-700 pt-2 text-base font-bold">
+                  {language === "bn" ? "মোট আর্থওয়ার্ক খরচ" : "Total earthwork cost"}: ৳ {Math.round(earthwork.costs.totalCost).toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ── Unit conversions (always visible) ────────────────────────────── */}
       <section className="mt-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="mb-4 text-xl font-semibold">
@@ -829,4 +1149,3 @@ export default function EstimatorPage() {
     </SiteShell>
   );
 }
-
