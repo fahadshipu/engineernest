@@ -32,11 +32,21 @@ export default function ServicesPage() {
 
   return (
     <SiteShell>
-      <h1 className="mb-6 text-3xl font-bold">{t(language, "services")}</h1>
+      <section className="mb-6 rounded-3xl bg-gradient-to-r from-blue-950 to-blue-800 p-6 text-white">
+        <h1 className="text-3xl font-bold">{t(language, "services")}</h1>
+        <p className="mt-2 text-sm text-blue-100">
+          {language === "bn"
+            ? "ডিজাইন, এস্টিমেশন এবং বাস্তবায়নের জন্য কর্পোরেট-গ্রেড সেবা।"
+            : "Corporate-grade engineering services for design, estimation, and project execution."}
+        </p>
+      </section>
       <div className="grid gap-4 md:grid-cols-2">
         {serviceCards.map((service) => (
-          <article key={service.title.en} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="text-lg font-semibold">{pick(language, service.title)}</h2>
+          <article
+            key={service.title.en}
+            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+          >
+            <h2 className="text-lg font-semibold text-blue-950">{pick(language, service.title)}</h2>
             <p className="mt-2 text-sm text-slate-600">{pick(language, service.body)}</p>
           </article>
         ))}
