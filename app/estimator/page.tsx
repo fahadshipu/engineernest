@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { SiteShell } from "@/components/site-shell";
 import { useLanguage } from "@/components/language-provider";
@@ -500,6 +501,27 @@ export default function EstimatorPage() {
               {language === "bn" ? "স্বাক্ষর / অথরাইজড" : "Signature / Authorized"}
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="mb-6 rounded-xl border border-blue-100 bg-blue-50 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-base font-semibold text-blue-950">
+              {language === "bn" ? "নতুন কাস্টম এস্টিমেট সাব-সেকশন" : "New custom estimate sub-section"}
+            </h2>
+            <p className="mt-1 text-sm text-blue-900">
+              {language === "bn"
+                ? "যেকোনো আইটেম/সেকশন যোগ-বিয়োগ ও ফ্রি এডিট করে প্রিন্টযোগ্য কাস্টম এস্টিমেট তৈরি করতে Custom Estimator ব্যবহার করুন।"
+                : "Use Custom Estimator for fully flexible add/remove/edit line items and clean printable estimates."}
+            </p>
+          </div>
+          <Link
+            href="/admin/estimator"
+            className="inline-flex rounded-md bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
+          >
+            {language === "bn" ? "কাস্টম এস্টিমেটর খুলুন" : "Open Custom Estimator"}
+          </Link>
         </div>
       </section>
 
