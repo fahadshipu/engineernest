@@ -12,7 +12,7 @@ import { AUTH_COOKIE, PKCE_VERIFIER_COOKIE, exchangePkceCode } from "@/lib/auth"
  *      login form before the OAuth redirect started.
  *   3. Exchanges code + verifier with Supabase's token endpoint.
  *   4. Validates that the returned user email is on the admin allowlist.
- *   5. Sets a secure httpOnly session cookie and redirects to /admin/dashboard.
+ *   5. Sets a secure httpOnly session cookie and redirects to /.
  *
  * Required Supabase configuration:
  *   Add <origin>/auth/callback to Authentication → URL Configuration →
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
     return clearVerifier(NextResponse.redirect(loginUrl));
   }
 
-  const response = NextResponse.redirect(new URL("/admin/dashboard", request.url));
+  const response = NextResponse.redirect(new URL("/", request.url));
   clearVerifier(response);
 
   response.cookies.set(AUTH_COOKIE, result.accessToken, {

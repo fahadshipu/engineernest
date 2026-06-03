@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { LanguageToggle } from "@/components/language-toggle";
 import { useLanguage } from "@/components/language-provider";
 import { t } from "@/lib/i18n";
@@ -17,6 +18,36 @@ const publicLinks = [
 export const SiteShell = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
   const { language } = useLanguage();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadSession = async () => {
+      try {
+        const response = await fetch("/api/admin/session", { cache: "no-store" });
+        const data = (await response.json()) as { isAdmin?: boolean };
+        if (mounted) {
+          setIsAdmin(data.isAdmin === true);
+        }
+      } catch {
+        if (mounted) {
+          setIsAdmin(false);
+        }
+      }
+    };
+
+    void loadSession();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const navLinks = useMemo(
+    () => (isAdmin ? [...publicLinks, { href: "/estimator", key: "estimator" as const }] : publicLinks),
+    [isAdmin]
+  );
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
@@ -68,7 +99,7 @@ export const SiteShell = ({ children }: { children: React.ReactNode }) => {
             </div>
           </div>
           <nav className="mt-3 flex gap-2 overflow-x-auto pb-1 md:mt-3 md:justify-center">
-            {publicLinks.map((link) => (
+            {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
