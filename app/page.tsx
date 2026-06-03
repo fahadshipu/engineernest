@@ -40,15 +40,25 @@ export default function HomePage() {
                 {content ? pick(language, content.cta) : t(language, "freeConsultation")}
               </Link>
               <Link
-                href="/estimator"
+                href="/services"
                 className="rounded-full border border-white/50 bg-transparent px-5 py-2.5 text-sm font-semibold text-white"
               >
-                {t(language, "estimateNow")}
+                {t(language, "services")}
               </Link>
             </div>
             <div className="grid gap-2 text-xs text-blue-100 sm:grid-cols-2">
-              <p className="rounded-xl bg-white/10 px-3 py-2">01739-894079 · 01401-788009</p>
-              <p className="rounded-xl bg-white/10 px-3 py-2">admin@skbaenterprise.me</p>
+              <a href="tel:+8801739894079" className="flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2 transition hover:bg-white/20">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/>
+                </svg>
+                01739-894079 · 01401-788009
+              </a>
+              <a href="mailto:admin@skbaenterprise.me" className="flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2 transition hover:bg-white/20">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/>
+                </svg>
+                admin@skbaenterprise.me
+              </a>
             </div>
           </div>
           <div className="space-y-4 rounded-2xl border border-white/20 bg-white/10 p-5">
