@@ -4,7 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
 import { pick } from "@/lib/i18n";
 import { dataLayer } from "@/lib/data-layer";
-import type { CompanyProfile } from "@/lib/types";
+import {
+  type PrintHeaderTemplate,
+  getPrintHeaderTemplateLabel,
+  getPrintHeaderTemplateOptions,
+  resolvePrintHeaderImageUrl,
+} from "@/lib/print-header-templates";
+import type { CompanyProfile, DocumentItem } from "@/lib/types";
 
 type EstimateItem = {
   id: string;
@@ -54,6 +60,8 @@ export default function AdminEstimatorPage() {
   const { language } = useLanguage();
 
   const [company, setCompany] = useState<CompanyProfile | null>(null);
+  const [documents, setDocuments] = useState<DocumentItem[]>([]);
+  const [printHeaderTemplate, setPrintHeaderTemplate] = useState<PrintHeaderTemplate>("none");
   const [referenceNo, setReferenceNo] = useState("EST-001");
   const [estimateDate, setEstimateDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [clientName, setClientName] = useState("");
@@ -76,7 +84,13 @@ export default function AdminEstimatorPage() {
 
   useEffect(() => {
     void dataLayer.getProfile().then(setCompany);
+    void dataLayer.list<DocumentItem>("documents").then(setDocuments);
   }, []);
+
+  const selectedPadHeaderUrl = useMemo(
+    () => resolvePrintHeaderImageUrl(documents, printHeaderTemplate),
+    [documents, printHeaderTemplate],
+  );
 
   const sectionTotals = useMemo(
     () =>
@@ -108,6 +122,7 @@ export default function AdminEstimatorPage() {
   };
 
   const handlePrint = () => {
+    const printHeaderLabel = getPrintHeaderTemplateLabel(printHeaderTemplate, language);
     const rows = sections
       .map((section, sectionIndex) => {
         const body = section.items
@@ -147,6 +162,10 @@ export default function AdminEstimatorPage() {
           <style>
             body { font-family: Arial, sans-serif; color: #0f172a; margin: 24px; }
             h1, h2, h3 { margin: 0 0 10px; }
+            .pad-header { margin-bottom: 10px; }
+            .pad-header img { max-height: 150px; width: 100%; object-fit: contain; display: block; }
+            .pad-header .pad-name { text-align: center; border: 1px solid #cbd5e1; padding: 10px; font-weight: 700; letter-spacing: 0.2px; }
+            .pad-ref-line { border-top: 1px solid #94a3b8; border-bottom: 1px solid #94a3b8; margin-bottom: 12px; padding: 6px 0; display: flex; justify-content: space-between; gap: 16px; font-size: 13px; }
             .head { border-bottom: 2px solid #1e3a8a; margin-bottom: 16px; padding-bottom: 12px; }
             .meta { margin: 0 0 16px; font-size: 14px; }
             .meta div { margin-bottom: 4px; }
@@ -159,14 +178,21 @@ export default function AdminEstimatorPage() {
           </style>
         </head>
         <body>
+          ${printHeaderTemplate === "none" ? "" : `<div class="pad-header">${
+            selectedPadHeaderUrl
+              ? `<img src="${escapeHtml(selectedPadHeaderUrl)}" alt="${escapeHtml(printHeaderLabel)}" />`
+              : `<div class="pad-name">${escapeHtml(printHeaderLabel)}</div>`
+          }</div>`}
+          <div class="pad-ref-line">
+            <div><strong>${language === "bn" ? "রেফ" : "Ref"}:</strong> ${escapeHtml(referenceNo)}</div>
+            <div><strong>${language === "bn" ? "তারিখ" : "Date"}:</strong> ${escapeHtml(estimateDate)}</div>
+          </div>
           <div class="head">
             <h1>${escapeHtml(company?.companyName ?? "EngineerNest")}</h1>
             <p>${escapeHtml(company ? pick(language, company.tagline) : "")}</p>
             <h2>${language === "bn" ? "কাস্টম এস্টিমেট" : "Custom Estimate"}</h2>
           </div>
           <div class="meta">
-            <div><strong>${language === "bn" ? "রেফ" : "Ref"}:</strong> ${escapeHtml(referenceNo)}</div>
-            <div><strong>${language === "bn" ? "তারিখ" : "Date"}:</strong> ${escapeHtml(estimateDate)}</div>
             <div><strong>${language === "bn" ? "ক্লায়েন্ট" : "Client"}:</strong> ${escapeHtml(clientName || "-")}</div>
             <div><strong>${language === "bn" ? "প্রজেক্ট" : "Project"}:</strong> ${escapeHtml(projectName || "-")}</div>
             <div><strong>${language === "bn" ? "সাইট" : "Site"}:</strong> ${escapeHtml(siteAddress || "-")}</div>
@@ -263,6 +289,15 @@ export default function AdminEstimatorPage() {
           </label>
           <label className="text-sm font-medium text-slate-700">{language === "bn" ? "তারিখ" : "Date"}
             <input type="date" value={estimateDate} onChange={(e) => setEstimateDate(e.target.value)} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+          </label>
+          <label className="text-sm font-medium text-slate-700">{language === "bn" ? "প্যাড হেডার" : "Pad header"}
+            <select value={printHeaderTemplate} onChange={(e) => setPrintHeaderTemplate(e.target.value as PrintHeaderTemplate)} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2">
+              {getPrintHeaderTemplateOptions(language).map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="text-sm font-medium text-slate-700">{language === "bn" ? "ক্লায়েন্ট" : "Client"}
             <input value={clientName} onChange={(e) => setClientName(e.target.value)} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
@@ -404,8 +439,20 @@ export default function AdminEstimatorPage() {
       </section>
 
       <section className="estimate-print-root rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        {printHeaderTemplate !== "none" && (
+          <div className="mb-3">
+            {selectedPadHeaderUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={selectedPadHeaderUrl} alt={getPrintHeaderTemplateLabel(printHeaderTemplate, language)} className="max-h-36 w-full rounded object-contain" />
+            ) : (
+              <p className="rounded border border-slate-300 px-3 py-2 text-center text-sm font-semibold text-slate-700">
+                {getPrintHeaderTemplateLabel(printHeaderTemplate, language)}
+              </p>
+            )}
+          </div>
+        )}
         <h2 className="text-xl font-bold text-blue-950">{language === "bn" ? "প্রিন্ট প্রিভিউ সারাংশ" : "Print preview summary"}</h2>
-        <div className="mt-2 grid gap-1 text-sm text-slate-700 md:grid-cols-2">
+        <div className="mt-2 grid gap-1 border-y border-slate-300 py-2 text-sm text-slate-700 md:grid-cols-2">
           <p><strong>{language === "bn" ? "রেফ" : "Ref"}:</strong> {referenceNo || "-"}</p>
           <p><strong>{language === "bn" ? "তারিখ" : "Date"}:</strong> {estimateDate || "-"}</p>
           <p><strong>{language === "bn" ? "ক্লায়েন্ট" : "Client"}:</strong> {clientName || "-"}</p>
