@@ -32,7 +32,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isAuthed && isLogin) {
-    return NextResponse.redirect(new URL("/admin/dashboard", request.url));
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   return NextResponse.next();
