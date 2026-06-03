@@ -7,6 +7,12 @@ import { useLanguage } from "@/components/language-provider";
 import { pick } from "@/lib/i18n";
 import { dataLayer } from "@/lib/data-layer";
 import {
+  type PrintHeaderTemplate,
+  getPrintHeaderTemplateLabel,
+  getPrintHeaderTemplateOptions,
+  resolvePrintHeaderImageUrl,
+} from "@/lib/print-header-templates";
+import {
   convertUnit,
   estimateBrickCount,
   estimateBudget,
@@ -68,7 +74,6 @@ const conversionRows: Array<{ from: ConversionUnit; to: ConversionUnit; label: {
 ];
 
 type TabKey = "overview" | "masonry" | "plaster" | "rcc" | "tiles" | "earthwork";
-type PrintTemplateMode = "pad-a" | "pad-b";
 
 const TABS: Array<{ key: TabKey; label: { en: string; bn: string } }> = [
   { key: "overview", label: { en: "Overview",       bn: "সার্বিক"           } },
@@ -186,7 +191,7 @@ export default function EstimatorPage() {
 
   // Active tab
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
-  const [printTemplate, setPrintTemplate] = useState<PrintTemplateMode>("pad-a");
+  const [printTemplate, setPrintTemplate] = useState<PrintHeaderTemplate>("none");
   const [estimateRefNo, setEstimateRefNo] = useState("EST-001");
   const [estimateDate, setEstimateDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [estimateClient, setEstimateClient] = useState("");
@@ -332,13 +337,9 @@ export default function EstimatorPage() {
     [converter, config],
   );
 
-  const padTemplateA = useMemo(
-    () => documents.find((item) => item.category === "pad-template-a"),
-    [documents],
-  );
-  const padTemplateB = useMemo(
-    () => documents.find((item) => item.category === "pad-template-b"),
-    [documents],
+  const selectedPadHeaderUrl = useMemo(
+    () => resolvePrintHeaderImageUrl(documents, printTemplate),
+    [documents, printTemplate],
   );
 
   const printLineItems = useMemo(
@@ -421,15 +422,18 @@ export default function EstimatorPage() {
           </label>
           <label className="text-sm font-medium text-slate-700 md:col-span-2">
             {language === "bn" ? "প্যাড টেমপ্লেট" : "Pad template"}
-            <select value={printTemplate} onChange={(e) => setPrintTemplate(e.target.value as PrintTemplateMode)} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2">
-              <option value="pad-a">{language === "bn" ? "টেমপ্লেট A (ক্লাসিক হেডার)" : "Template A (classic header)"}</option>
-              <option value="pad-b">{language === "bn" ? "টেমপ্লেট B (সাইড-অ্যাকসেন্ট)" : "Template B (side accent)"}</option>
+            <select value={printTemplate} onChange={(e) => setPrintTemplate(e.target.value as PrintHeaderTemplate)} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2">
+              {getPrintHeaderTemplateOptions(language).map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </label>
           <div className="rounded-md border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600 md:col-span-2">
             {language === "bn"
-              ? "Admin > Documents থেকে Pad template A/B ক্যাটাগরিতে ইমেজ আপলোড করুন। সেগুলো প্রিন্ট হেডারে রেফারেন্স হিসেবে দেখানো হবে।"
-              : "Upload images in Admin > Documents under Pad template A/B categories. Those images are used as print-header references."}
+              ? "Admin > Documents থেকে Pad template A/B ক্যাটাগরিতে ইমেজ আপলোড করুন। প্রিন্টে Faisal বা S.K.B.A header বাছলে সেই ইমেজ দেখানো হবে।"
+              : "Upload images in Admin > Documents under Pad template A/B categories. Selecting Faisal or S.K.B.A. header will use those images in print."}
           </div>
         </div>
         <button type="button" onClick={() => window.print()} className="mt-4 rounded-md bg-blue-900 px-4 py-2 font-semibold text-white">
@@ -437,26 +441,25 @@ export default function EstimatorPage() {
         </button>
       </section>
 
-      <section
-        className={`estimate-print-root mb-6 rounded-xl border bg-white p-6 shadow-sm ${
-          printTemplate === "pad-a" ? "border-slate-200" : "border-blue-300"
-        }`}
-      >
-        <div className={`mb-4 ${printTemplate === "pad-b" ? "border-l-4 border-blue-700 pl-4" : ""}`}>
-          {(printTemplate === "pad-a" ? padTemplateA : padTemplateB)?.url && (
+      <section className="estimate-print-root mb-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mb-4">
+          {selectedPadHeaderUrl && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={(printTemplate === "pad-a" ? padTemplateA : padTemplateB)?.url}
+              src={selectedPadHeaderUrl}
               alt={language === "bn" ? "প্যাড হেডার রেফারেন্স" : "Pad header reference"}
               className="mb-3 max-h-36 w-full rounded object-contain"
             />
+          )}
+          {printTemplate !== "none" && !selectedPadHeaderUrl && (
+            <p className="mb-3 text-center text-sm font-semibold text-slate-700">{getPrintHeaderTemplateLabel(printTemplate, language)}</p>
           )}
           <h2 className="text-xl font-bold">{company?.companyName ?? "EngineerNest"}</h2>
           <p className="text-sm text-slate-600">{company ? pick(language, company.tagline) : ""}</p>
         </div>
 
-        <div className="mb-4 grid gap-2 text-sm md:grid-cols-2">
-          <p><strong>{language === "bn" ? "রেফ নং:" : "Ref no:"}</strong> {estimateRefNo}</p>
+        <div className="mb-4 grid gap-2 border-y border-slate-300 py-2 text-sm md:grid-cols-2">
+          <p><strong>{language === "bn" ? "রেফ:" : "Ref:"}</strong> {estimateRefNo}</p>
           <p><strong>{language === "bn" ? "তারিখ:" : "Date:"}</strong> {estimateDate}</p>
           <p><strong>{language === "bn" ? "ক্লায়েন্ট:" : "Client:"}</strong> {estimateClient || "-"}</p>
           <p><strong>{language === "bn" ? "প্রজেক্ট:" : "Project:"}</strong> {estimateProject || "-"}</p>
