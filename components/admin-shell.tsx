@@ -19,7 +19,7 @@ const adminLinks = [
   { href: "/admin/profile", key: "profile" as const },
   { href: "/admin/content", key: "content" as const },
   { href: "/admin/rates", key: "rates" as const },
-  { href: "/estimator", key: "estimator" as const },
+  { href: "/admin/estimator", key: "estimator" as const },
 ];
 
 export const AdminShell = ({ children }: { children: React.ReactNode }) => {
