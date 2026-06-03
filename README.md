@@ -212,6 +212,8 @@ This is a lightweight MVP timeline / Gantt-style planner built with existing UI 
 - print action with clean print window output
 - CSV export for estimate line items and totals
 
+Legacy estimator workflow is also preserved at `/estimator` (still protected by admin session middleware), so both old and new estimator styles are available.
+
 ## Environment setup
 
 Copy `.env.example` to `.env.local` and update values as needed.
