@@ -91,7 +91,7 @@ export const SiteShell = ({ children }: { children: React.ReactNode }) => {
             <div className="flex items-center gap-2">
               <LanguageToggle />
               <Link
-                href="/admin/login"
+                href={isAdmin ? "/admin/dashboard" : "/admin/login"}
                 className="rounded-full bg-blue-950 px-4 py-2 text-xs font-semibold text-white transition hover:bg-blue-800"
               >
                 {t(language, "admin")}
