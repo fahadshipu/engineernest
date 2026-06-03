@@ -12,9 +12,9 @@ EngineerNest is a **Next.js (App Router)** MVP foundation for a civil engineerin
 - Inventory / stock management with received, consumed, and remaining quantity visibility
 - Separate engineer/admin and client dashboard experiences
 - Admin-managed **material rates** and **estimation configuration**
-- Trade-wise + earthwork estimator with editable assumptions
+- Admin-only customizable estimator with editable sections/items and print/export support
 - BNBC-aware site compliance checklist module for admin tracking
-- Unit conversion tools and preliminary BNBC-inspired estimator
+- Unit conversion tools and preliminary BNBC-inspired calculation modules
 - Database-ready data abstraction with local persistence fallback
 
 > ⚠️ Estimator disclaimer: all calculations in this MVP are **preliminary estimates only**. Final design, quantities, and costing must be reviewed by a qualified engineer.
@@ -81,7 +81,6 @@ https://<your-production-domain>/auth/callback
 - `/`
 - `/services`
 - `/portfolio`
-- `/estimator`
 - `/resources`
 - `/contact`
 
@@ -99,6 +98,7 @@ https://<your-production-domain>/auth/callback
 - `/admin/content`
 - `/admin/rates`
 - `/admin/site-compliance`
+- `/admin/estimator`
 
 ### Client
 
@@ -200,21 +200,17 @@ This is a lightweight MVP timeline / Gantt-style planner built with existing UI 
 
 > MVP role model note: role separation is currently expressed through route/view abstractions and UI capabilities. Full multi-user role enforcement is future-ready but not yet backed by a dedicated auth/authorization store.
 
-## Pad-based estimate printing
+## Admin custom estimator
 
-`/estimator` now includes:
+`/admin/estimator` now provides:
 
-- print template selector (Template A and Template B)
-- print metadata fields (ref no, date, client name, project name)
-- A4-friendly print preview and print action
-- estimate table + subtotal/profit/VAT/grand total
-- signature/footer area
-- preliminary estimate disclaimer (Bangla + English)
-
-Pad template reference images are taken from uploaded documents with categories:
-
-- `pad-template-a`
-- `pad-template-b`
+- admin-only custom estimate builder
+- dynamic sections and line items (add/remove)
+- editable item name/description/unit/rate/quantity/totals
+- subtotal, tax, additional charge, discount, and grand total
+- optional estimate metadata (ref/date/client/project/site) and remarks
+- print action with clean print window output
+- CSV export for estimate line items and totals
 
 ## Environment setup
 
