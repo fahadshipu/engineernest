@@ -184,7 +184,7 @@ export default function AdminEstimatorPage() {
         </body>
       </html>`;
 
-    const popup = window.open("", "_blank", "noopener,noreferrer,width=1100,height=850");
+    const popup = window.open("", "_blank", "width=1100,height=850");
     if (!popup) return;
     popup.document.open();
     popup.document.write(printable);
