@@ -504,24 +504,47 @@ export default function EstimatorPage() {
         </div>
       </section>
 
-      <section className="mb-6 rounded-xl border border-blue-100 bg-blue-50 p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-base font-semibold text-blue-950">
-              {language === "bn" ? "নতুন কাস্টম এস্টিমেট সাব-সেকশন" : "New custom estimate sub-section"}
-            </h2>
-            <p className="mt-1 text-sm text-blue-900">
-              {language === "bn"
-                ? "যেকোনো আইটেম/সেকশন যোগ-বিয়োগ ও ফ্রি এডিট করে প্রিন্টযোগ্য কাস্টম এস্টিমেট তৈরি করতে Custom Estimator ব্যবহার করুন।"
-                : "Use Custom Estimator for fully flexible add/remove/edit line items and clean printable estimates."}
-            </p>
+      <section className="mb-6 grid gap-4 md:grid-cols-2">
+        <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-base font-semibold text-blue-950">
+                {language === "bn" ? "কাস্টম এস্টিমেট সাব-সেকশন" : "Custom estimate sub-section"}
+              </h2>
+              <p className="mt-1 text-sm text-blue-900">
+                {language === "bn"
+                  ? "যেকোনো আইটেম/সেকশন যোগ-বিয়োগ ও ফ্রি এডিট করে প্রিন্টযোগ্য কাস্টম এস্টিমেট তৈরি করতে Custom Estimator ব্যবহার করুন।"
+                  : "Use Custom Estimator for fully flexible add/remove/edit line items and clean printable estimates."}
+              </p>
+            </div>
+            <Link
+              href="/admin/estimator"
+              className="inline-flex rounded-md bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
+            >
+              {language === "bn" ? "কাস্টম এস্টিমেটর খুলুন" : "Open Custom Estimator"}
+            </Link>
           </div>
-          <Link
-            href="/admin/estimator"
-            className="inline-flex rounded-md bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
-          >
-            {language === "bn" ? "কাস্টম এস্টিমেটর খুলুন" : "Open Custom Estimator"}
-          </Link>
+        </div>
+
+        <div className="rounded-xl border border-green-100 bg-green-50 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-base font-semibold text-green-950">
+                {language === "bn" ? "ইঞ্জিনিয়ারিং এস্টিমেটর (BNBC-2020)" : "Engineering Estimator (BNBC-2020)"}
+              </h2>
+              <p className="mt-1 text-sm text-green-900">
+                {language === "bn"
+                  ? "স্ল্যাব, বিম ও কলামের রড, সিমেন্ট, বালু ও খোয়ার BNBC-2020 ভিত্তিক পরিমাণ নির্ণয় করুন।"
+                  : "Calculate slab, beam & column quantities (rod, cement, sand, stone) using BNBC-2020-informed logic."}
+              </p>
+            </div>
+            <Link
+              href="/admin/engineering-estimator"
+              className="inline-flex rounded-md bg-green-800 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
+            >
+              {language === "bn" ? "ইঞ্জিনিয়ারিং এস্টিমেটর খুলুন" : "Open Engineering Estimator"}
+            </Link>
+          </div>
         </div>
       </section>
 
