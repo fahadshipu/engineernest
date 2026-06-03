@@ -7,6 +7,14 @@ import { useLanguage } from "@/components/language-provider";
 import { pick, t } from "@/lib/i18n";
 import { dashboardRoles } from "@/lib/dashboard-roles";
 
+const publicLinks = [
+  { href: "/", key: "home" as const },
+  { href: "/services", key: "services" as const },
+  { href: "/portfolio", key: "portfolio" as const },
+  { href: "/resources", key: "resources" as const },
+  { href: "/contact", key: "contact" as const },
+];
+
 const adminLinks = [
   { href: "/admin/dashboard", key: "dashboard" as const },
   { href: "/admin/projects", key: "projects" as const },
@@ -51,6 +59,29 @@ export const AdminShell = ({ children }: { children: React.ReactNode }) => {
               </Link>
             ))}
           </nav>
+          <div className="mt-4 border-t border-slate-100 pt-4">
+            <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-widest text-slate-400">{t(language, "publicSite")}</p>
+            <Link
+              href="/"
+              className="flex items-center gap-2 rounded-md bg-blue-950 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-800"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+              </svg>
+              {t(language, "home")}
+            </Link>
+            <nav className="mt-1 space-y-1">
+              {publicLinks.slice(1).map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="block rounded-md px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 hover:text-blue-900"
+                >
+                  {t(language, link.key)}
+                </Link>
+              ))}
+            </nav>
+          </div>
           <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-100 pt-4">
             <LanguageToggle />
             <button
